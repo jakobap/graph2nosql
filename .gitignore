@@ -1,3 +1,6 @@
 *.json
 .DS_Store
 *-venv
+.env
+*.pyc
+*/test_graph.png

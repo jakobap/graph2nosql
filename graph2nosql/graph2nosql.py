@@ -1,7 +1,5 @@
-# try:
-#     from nosql_kg.data_model import NodeData, EdgeData, CommunityData, NodeEmbeddings
-# except:
-from datamodel.data_model import NodeData, EdgeData, CommunityData, NodeEmbeddings
+
+from datamodel.data_model import NodeData, EdgeData, CommunityData, NodeEmbeddings 
 
 from re import A
 import networkx
