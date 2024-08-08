@@ -1,4 +1,8 @@
 # graph2nosql
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+[![Python](https://img.shields.io/badge/python-3.x-blue.svg)](https://www.python.org/)
+
+
 A simple Python interface to store and interact with knowledge graphs in your favourite NoSQL DB.
 
 Knowledge Graphs are the up and coming tool to index knowlegde and make it understandable to your LLM applications. Working with Graph Databases are a pain though.
