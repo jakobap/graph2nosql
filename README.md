@@ -14,6 +14,11 @@ This is mostly catering own use and currently not regularly updated or maintaine
 ### Implemented NoSQL Databases so far:
 * [Firestore](https://firebase.google.com/docs/firestore)
 
+### Getting Started
+1. Create an `.env` that stores your secrets & env vars.
+2. Use a database object to interact with your nosql db.
+
 ### Contributing
 * If you decide to add new DB operations, please add corresponding tests to `graph2nosql_tests.py` 
 * If you decide to write an implementation for another NoSQL db please make sure all tests in `graph2nosql_tests.py` succeed.
+
