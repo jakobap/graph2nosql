@@ -669,9 +669,6 @@ class FirestoreKGTests(_NoSQLKnowledgeGraphTests, unittest.TestCase):
 
         secrets = dotenv_values("../.env")
 
-        print(os.path.dirname(os.path.abspath(__file__)))
-        print(secrets)
-
         gcp_credential_file = str(secrets["GCP_CREDENTIAL_FILE"])
         project_id = str(secrets["GCP_PROJECT_ID"])
         database_id = str(secrets["FIRESTORE_DB_ID"])
