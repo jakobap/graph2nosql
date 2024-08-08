@@ -1,9 +1,5 @@
-try:
-    from .graph2nosql import NoSQLKnowledgeGraph
-    from .data_model import NodeData, EdgeData, CommunityData
-except:
-    from graph2nosql import NoSQLKnowledgeGraph
-    from data_model import NodeData, EdgeData, CommunityData
+from graph2nosql.graph2nosql import NoSQLKnowledgeGraph
+from datamodel.data_model import NodeData, EdgeData, CommunityData
 
 from matplotlib.pylab import source
 

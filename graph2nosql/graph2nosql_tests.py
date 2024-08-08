@@ -1,6 +1,6 @@
-from graph2nosql import NoSQLKnowledgeGraph
-from firestore_kg import FirestoreKG
-from data_model import NodeData, EdgeData, CommunityData
+from graph2nosql.graph2nosql import NoSQLKnowledgeGraph
+from databases.firestore_kg import FirestoreKG
+from datamodel.data_model import NodeData, EdgeData, CommunityData
 
 import unittest
 from abc import ABC, abstractmethod
