@@ -8,7 +8,7 @@ This Python interface aims to solve  this by offering a set of basic functions t
 This is mostly catering own use and currently not regularly updated or maintained.
 
 ### Implemented NoSQL Databases so far:
-* Firestore
+* [Firestore](https://firebase.google.com/docs/firestore)
 
 ### Contributing
 * If you decide to add new DB operations, please add corresponding tests to `graph2nosql_tests.py` 
