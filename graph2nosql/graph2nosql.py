@@ -95,6 +95,11 @@ class NoSQLKnowledgeGraph(ABC):
         """Lists all stored communities for the given network.""" 
         pass
 
+    @abstractmethod
+    def clean_zerodegree_nodes(self) -> None:
+        """Removes all nodes with degree 0."""
+        pass
+
     def visualize_graph(self, filename: str = f"graph_{datetime.datetime.now()}.png") -> None:
         """Visualizes the provided networkx graph using matplotlib.
 
