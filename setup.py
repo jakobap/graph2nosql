@@ -8,9 +8,10 @@ setup(
         'networkx==3.3',
         'matplotlib==3.9.1',
         'langfuse==2.39.2',
-        'graspologic==3.4.1',
-        'numpy==1.26.4',
+        'graspologic',
+        'numpy',
         'firebase-admin==6.5.0',
-        'python-dotenv==1.0.1'
+        'python-dotenv==1.0.1',
+        'future==1.0.0'
     ]
 )
