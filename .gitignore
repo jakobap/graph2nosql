@@ -4,3 +4,6 @@
 .env
 *.pyc
 */test_graph.png
+
+*.egg-info
+
