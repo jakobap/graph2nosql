@@ -11,6 +11,6 @@ setup(
         'graspologic==3.4.1',
         'numpy==2.0.1',
         'firebase-admin==6.5.0',
-        'python-dotenv==1.0.0'
+        'python-dotenv==1.0.1'
     ]
 )
