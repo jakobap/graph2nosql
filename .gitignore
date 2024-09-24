@@ -2,8 +2,8 @@
 .DS_Store
 *-venv
 .env
+.graph2nosql_venv
 *.pyc
 */test_graph.png
 
 *.egg-info
-
