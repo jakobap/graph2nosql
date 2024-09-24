@@ -1,7 +1,6 @@
 # general dependencies
 networkx==3.3
 matplotlib==3.9.1
-langfuse==2.39.2
 graspologic
 numpy
 future==1.0.0
