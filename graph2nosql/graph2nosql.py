@@ -18,8 +18,7 @@ class NoSQLKnowledgeGraph(ABC):
     """
     Base Class for storing and interacting with the KG and manages data model.
     """
-    networkx: nx.Graph | nx.DiGraph = nx.Graph(
-    )  # networkx representation of graph in nosqldb
+    networkx: nx.Graph | nx.DiGraph = nx.Graph()  # networkx representation of graph in nosqldb
 
     @abstractmethod
     def add_node(self, node_uid: str, node_data: NodeData) -> None:
