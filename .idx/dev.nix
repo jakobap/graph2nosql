@@ -15,7 +15,9 @@
   idx = {
     # Search for the extensions you want on https://open-vsx.org/ and use "publisher.id"
     extensions = [
-      "ms-python.python"
+      "ms-python.autopep8"
+      "ms-python.debugpy"
+      "ms-python.pythonv2024.12.3"
     ];
     # Enable previews
     previews = {
