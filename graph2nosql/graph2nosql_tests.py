@@ -1,5 +1,10 @@
-from graph2nosql.graph2nosql import NoSQLKnowledgeGraph
+# from graph2nosql.graph2nosql import NoSQLKnowledgeGraph
+# from databases.firestore_kg import FirestoreKG
+# from datamodel.data_model import NodeData, EdgeData, CommunityData
+
+from graph2nosql import NoSQLKnowledgeGraph
 from databases.firestore_kg import FirestoreKG
+from databases.n4j import AuraKG
 from datamodel.data_model import NodeData, EdgeData, CommunityData
 
 import unittest
@@ -659,32 +664,48 @@ class _NoSQLKnowledgeGraphTests(ABC):
         self.kg.remove_node(node_uid="test_vis_node_3")
 
 
-class FirestoreKGTests(_NoSQLKnowledgeGraphTests, unittest.TestCase):
-    def create_kg_instance(self) -> NoSQLKnowledgeGraph:
+# class FirestoreKGTests(_NoSQLKnowledgeGraphTests, unittest.TestCase):
+#     def create_kg_instance(self) -> NoSQLKnowledgeGraph:
 
+#         import os
+#         from dotenv import dotenv_values
+
+#         os.chdir(os.path.dirname(os.path.abspath(__file__))) 
+
+#         secrets = dotenv_values("../.env")
+
+#         gcp_credential_file = str(secrets["GCP_CREDENTIAL_FILE"])
+#         project_id = str(secrets["GCP_PROJECT_ID"])
+#         database_id = str(secrets["FIRESTORE_DB_ID"])
+#         node_coll_id = str(secrets["NODE_COLL_ID"])
+#         edges_coll_id = str(secrets["EDGES_COLL_ID"])
+#         community_coll_id = str(secrets["COMM_COLL_ID"])
+
+#         fskg = FirestoreKG(
+#             gcp_project_id=project_id,
+#             gcp_credential_file=gcp_credential_file,
+#             firestore_db_id=database_id,
+#             node_collection_id=node_coll_id,
+#             edges_collection_id=edges_coll_id,
+#             community_collection_id=community_coll_id
+#         )
+#         return fskg
+
+
+class AuraKGTest(_NoSQLKnowledgeGraphTests, unittest.TestCase):
+    def create_kg_instance(self) -> NoSQLKnowledgeGraph:
         import os
         from dotenv import dotenv_values
 
-        os.chdir(os.path.dirname(os.path.abspath(__file__))) 
+        os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
-        secrets = dotenv_values("../.env")
+        secrets = dotenv.load_dotenv("Neo4j-39cb28f0-Created-2024-09-23.txt")
 
-        gcp_credential_file = str(secrets["GCP_CREDENTIAL_FILE"])
-        project_id = str(secrets["GCP_PROJECT_ID"])
-        database_id = str(secrets["FIRESTORE_DB_ID"])
-        node_coll_id = str(secrets["NODE_COLL_ID"])
-        edges_coll_id = str(secrets["EDGES_COLL_ID"])
-        community_coll_id = str(secrets["COMM_COLL_ID"])
+        URI = os.getenv("NEO4J_URI")
+        AUTH = (os.getenv("NEO4J_USERNAME"), os.getenv("NEO4J_PASSWORD"))
 
-        fskg = FirestoreKG(
-            gcp_project_id=project_id,
-            gcp_credential_file=gcp_credential_file,
-            firestore_db_id=database_id,
-            node_collection_id=node_coll_id,
-            edges_collection_id=edges_coll_id,
-            community_collection_id=community_coll_id
-        )
-        return fskg
+        # Create an instance of your AuraKG class
+        return AuraKG(uri=URI, auth=AUTH)
 
 if __name__ == "__main__":
     unittest.main() 
