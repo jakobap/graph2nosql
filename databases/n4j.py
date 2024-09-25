@@ -1,4 +1,4 @@
-from graph2nosql.graph2nosql import NoSQLKnowledgeGraph
+from graph2nosql import NoSQLKnowledgeGraph
 from datamodel.data_model import NodeData, EdgeData, CommunityData
 
 from neo4j import GraphDatabase
@@ -20,7 +20,7 @@ class AuraKG(NoSQLKnowledgeGraph):
         self.uri = uri
         self.auth = auth
 
-    def add_node(self, node_data: NodeData) -> None:
+    def add_node(self, node_uid: str, node_data: NodeData) -> None:
         """Adds an node to the knowledge graph."""
 
         with GraphDatabase.driver(self.uri, auth=self.auth) as driver:
@@ -79,7 +79,7 @@ class AuraKG(NoSQLKnowledgeGraph):
                     node_title=node_data.get('node_title'), 
                     node_type=node_data.get('node_type'),
                     node_description=node_data.get('node_description'),
-                    node_degree=len(node_data.get('edges_to', [])) + len(node_data.get('edges_from', [])),
+                    node_degree=node_data.get('node_degree'),
                     document_id=node_data.get('document_id'),
                     edges_to=node_data.get('edges_to', []),
                     edges_from=node_data.get('edges_from', []),
@@ -121,21 +121,92 @@ class AuraKG(NoSQLKnowledgeGraph):
                 embedding=node_data.embedding
             ).summary
 
-            if summary.counters.nodes_updated == 0:
-                raise KeyError(f"Error: No node found with node_uid: {node_uid}")
-
-
     def remove_node(self, node_uid: str) -> None:
-        """Removes an node from the knowledge graph."""
-        pass
+        """Removes a node from the knowledge graph."""
+
+        with GraphDatabase.driver(self.uri, auth=self.auth) as driver:
+            driver.verify_connectivity()
+
+            summary = driver.execute_query(
+                "MATCH (n {node_uid: $node_uid}) DETACH DELETE n",
+                node_uid=node_uid
+            ).summary
+
+            if summary.counters.nodes_deleted == 0:
+                raise KeyError(f"Error: No node found with node_uid: {node_uid}")
+        return None
 
     def add_edge(self, edge_data: EdgeData, directed: bool = True) -> None:
         """Adds an edge (relationship) between two entities in the knowledge graph."""
-        pass
+
+        # get source and target node data
+        source_node_data = self.get_node(edge_data.source_uid)
+        target_node_data = self.get_node(edge_data.target_uid)
+
+        # update source and target node data
+        source_node_data.edges_to = list(set(source_node_data.edges_to) | {edge_data.target_uid})
+        self.update_node(edge_data.source_uid, source_node_data)
+        target_node_data.edges_from = list(set(target_node_data.edges_from) | {edge_data.source_uid})
+        self.update_node(edge_data.target_uid, target_node_data)
+
+        with GraphDatabase.driver(self.uri, auth=self.auth) as driver:
+            driver.verify_connectivity()
+
+            if directed:
+                query = """
+                MATCH (source:""" + source_node_data.node_type + """ {node_uid: $source_uid}), (target:""" + target_node_data.node_type + """ {node_uid: $target_uid})
+                CREATE (source)-[:DIRECTED {description: $description}]->(target)
+                """
+
+            elif not directed:
+                query = """
+                MATCH (source:""" + source_node_data.node_type + """ {node_uid: $source_uid}), (target:""" + target_node_data.node_type + """ {node_uid: $target_uid})
+                CREATE (source)-[:UNDIRECTED {description: $description}]->(target), (target)-[:UNDIRECTED {description: $description}]->(source)
+                """
+
+                # Since it's undirected, also add source_uid to target_node_data.edges_from and vice versa
+                target_node_data.edges_to = list(set(target_node_data.edges_to) | {edge_data.source_uid})
+                self.update_node(edge_data.target_uid, target_node_data)
+                source_node_data.edges_from = list(set(source_node_data.edges_from) | {edge_data.target_uid})
+                self.update_node(edge_data.source_uid, source_node_data)
+
+            summary = driver.execute_query(
+                query,
+                source_uid=edge_data.source_uid,
+                target_uid=edge_data.target_uid,
+                description=edge_data.description
+            ).summary
+
+        return None
 
     def get_edge(self, source_uid: str, target_uid: str) -> EdgeData:
         """Retrieves an edge between two entities."""
-        pass
+
+        # get source and target node data
+        source_node_data = self.get_node(source_uid)
+        target_node_data = self.get_node(target_uid)
+
+        with GraphDatabase.driver(self.uri, auth=self.auth) as driver:
+            driver.verify_connectivity()
+
+            # Use parameters for source_uid and target_uid
+            records, summary, keys = driver.execute_query(
+                """
+                MATCH (source:""" + source_node_data.node_type + """ {node_uid: $source_uid})-[r]->(target:""" + target_node_data.node_type + """ {node_uid: $target_uid}) 
+                RETURN r
+                """,
+                source_uid=source_uid,
+                target_uid=target_uid
+            )
+
+            if records:
+                record = records[0][0]
+                edge_type = record.type
+                description = record.get('description')
+                return EdgeData(source_uid=source_uid, target_uid=target_uid, description=description, edge_uid=self._generate_edge_uid(source_uid, target_uid))
+            else:
+                raise KeyError(f"Error: No edge found between source_uid: '{source_uid}' and target_uid: '{target_uid}'")
+
 
     def update_edge(self, edge_data: EdgeData) -> None:
         """Updates an existing edge in the knowledge graph."""
@@ -159,7 +230,7 @@ class AuraKG(NoSQLKnowledgeGraph):
 
     def _generate_edge_uid(self, source_uid: str, target_uid: str) -> str:
         """Generates Edge uid for the network based on source and target nod uid"""
-        return ""
+        return f"{source_uid}_to_{target_uid}"
 
     def get_nearest_neighbors(self, query_vec) -> List[str]:
         """Implements nearest neighbor search based on nosql db index."""
