@@ -1,11 +1,12 @@
 from graph2nosql import NoSQLKnowledgeGraph
 from datamodel.data_model import NodeData, EdgeData, CommunityData
 
-from neo4j import GraphDatabase
-
 import dotenv
 import os
 from typing import Dict, List
+
+from neo4j import GraphDatabase
+import networkx as nx
 
 
 class AuraKG(NoSQLKnowledgeGraph):
@@ -284,7 +285,37 @@ class AuraKG(NoSQLKnowledgeGraph):
         """Builds the NetworkX representation of the full graph.
         https://networkx.org/documentation/stable/index.html
         """
-        pass
+        graph = nx.Graph()  # Initialize an undirected NetworkX graph
+
+        with GraphDatabase.driver(self.uri, auth=self.auth) as driver:
+            driver.verify_connectivity()
+
+            # 1. Fetch all nodes and their properties
+            records, summary, keys = driver.execute_query("MATCH (n) RETURN n")
+            for record in records:
+                node = record["n"]
+                node_data = {
+                    "node_uid": node.get("node_uid"),
+                    "node_title": node.get("node_title"),
+                    "node_type": node.get("node_type"),
+                    "node_description": node.get("node_description"),
+                    "node_degree": node.get("node_degree"),
+                    "document_id": node.get("document_id"),
+                    "edges_to": node.get("edges_to", []),
+                    "edges_from": node.get("edges_from", []),
+                    "embedding": node.get("embedding", [])
+                }
+                graph.add_node(node.get("node_uid"), **node_data)
+
+            # 2. Fetch all relationships and add edges to the graph
+            records, summary, keys = driver.execute_query("MATCH (source)-[r]->(target) RETURN source, r, target")
+            for record in records:
+                source_uid = record["source"]["node_uid"]
+                target_uid = record["target"]["node_uid"]
+                # Add edge attributes if needed (e.g., 'description' from 'r')
+                graph.add_edge(source_uid, target_uid)
+
+        self.networkx = graph
 
     def store_community(self, community: CommunityData) -> None:
         """Takes valid graph community data and upserts the database with it.
