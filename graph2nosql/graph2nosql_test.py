@@ -704,6 +704,13 @@ class FirestoreKGTests(_NoSQLKnowledgeGraphTests, unittest.TestCase):
             edges_collection_id=edges_coll_id,
             community_collection_id=community_coll_id
         )
+
+        # Clear the collections before running tests
+        for collection_id in [node_coll_id, edges_coll_id, community_coll_id]:
+            docs = fskg.db.collection(collection_id).stream()
+            for doc in docs:
+                doc.reference.delete()
+
         return fskg
 
 
