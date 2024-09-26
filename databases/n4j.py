@@ -207,14 +207,78 @@ class AuraKG(NoSQLKnowledgeGraph):
             else:
                 raise KeyError(f"Error: No edge found between source_uid: '{source_uid}' and target_uid: '{target_uid}'")
 
-
     def update_edge(self, edge_data: EdgeData) -> None:
         """Updates an existing edge in the knowledge graph."""
-        pass
+
+        # get source and target node data
+        source_node_data = self.get_node(edge_data.source_uid)
+        target_node_data = self.get_node(edge_data.target_uid)
+
+        with GraphDatabase.driver(self.uri, auth=self.auth) as driver:
+            driver.verify_connectivity()
+
+            # Use parameters for all properties in the Cypher query
+            summary = driver.execute_query(
+                """
+                MATCH (source:""" + source_node_data.node_type + """ {node_uid: $source_uid})-[r]->(target:""" + target_node_data.node_type + """ {node_uid: $target_uid})
+                SET r.description = $description
+                RETURN r
+                """,
+                source_uid=edge_data.source_uid,
+                target_uid=edge_data.target_uid,
+                description=edge_data.description
+            ).summary
+        return None
 
     def remove_edge(self, source_uid: str, target_uid: str) -> None:
         """Removes an edge between two entities."""
-        pass
+
+        try: 
+            # Get source and target node data (this will raise KeyError if not found)
+            source_node_data = self.get_node(source_uid)
+            target_node_data = self.get_node(target_uid)
+
+            with GraphDatabase.driver(self.uri, auth=self.auth) as driver:
+                driver.verify_connectivity()
+
+                # Remove edge from source to target
+                summary = driver.execute_query(
+                    """
+                    MATCH (source:""" + source_node_data.node_type + """ {node_uid: $source_uid})-[r]->(target:""" + target_node_data.node_type + """ {node_uid: $target_uid})
+                    DELETE r
+                    """,
+                    source_uid=source_uid,
+                    target_uid=target_uid
+                ).summary
+
+                # Optionally, you might want to check if the edge was actually deleted
+                if summary.counters.relationships_deleted == 0:
+                    raise KeyError(f"Error: No edge found between source_uid: '{source_uid}' and target_uid: '{target_uid}'")
+        except KeyError:
+            empty_node = NodeData(
+                node_uid="",
+                node_title="",
+                node_type="",
+                node_description="",
+                node_degree=0,
+                document_id="",
+            )
+            source_node_data = empty_node
+            target_node_data = empty_node
+
+        # Update the node data to reflect the removed edge
+        try:
+            source_node_data.edges_to.remove(target_uid)
+            self.update_node(source_uid, source_node_data)
+        except ValueError:
+            pass  # Target node not in source's edges_to, likely due to a directed edge
+
+        try:
+            target_node_data.edges_from.remove(source_uid)
+            self.update_node(target_uid, target_node_data)
+        except ValueError:
+            pass  # Source node not in target's edges_from, likely due to a directed edge
+        return None
 
     def build_networkx(self) -> None:
         """Builds the NetworkX representation of the full graph.
