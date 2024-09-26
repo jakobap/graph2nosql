@@ -428,13 +428,28 @@ class _NoSQLKnowledgeGraphTests(ABC):
             node_description="This is another test node",
             node_degree=0,
             document_id="doc_2",
-            edges_to=["test_node_1",],
+            edges_to=[],
             edges_from=[],
             embedding=[0.4, 0.5, 0.6],
         )
         self.kg.add_node(node_uid="test_removeegde_node_1", node_data=node_data_1)
         self.kg.add_node(node_uid="test_removeegde_node_2", node_data=node_data_2)
 
+        # add edges between nodes
+        edge_data = EdgeData(
+            source_uid="test_removeegde_node_2",
+            target_uid="test_removeegde_node_1",
+            description="This is a test egde description"
+        )
+        self.kg.add_edge(edge_data=edge_data)
+
+        # Assert that the edge is reflected in the nodes' edge lists
+        node1 = self.kg.get_node("test_removeegde_node_1")
+        node2 = self.kg.get_node("test_removeegde_node_2")
+        self.assertIn("test_removeegde_node_1", node2.edges_to) # type: ignore
+        self.assertIn("test_removeegde_node_2", node1.edges_from) # type: ignore
+
+        # Remove the edge
         self.kg.remove_edge(source_uid="test_removeegde_node_2", target_uid="test_removeegde_node_1")
 
         # Assert that the edge is no longer in the nodes' edge lists
