@@ -558,9 +558,9 @@ class _NoSQLKnowledgeGraphTests(ABC):
             embedding=[0.4, 0.5, 0.6],
         )
 
-        node_data_3 = NodeData(
+        node_data_4 = NodeData(
             node_uid="test_louvain_node_4",
-            node_title="Test Node 3",
+            node_title="Test Node 4",
             node_type="Person",
             node_description="This is another test node",
             node_degree=0,
@@ -573,7 +573,7 @@ class _NoSQLKnowledgeGraphTests(ABC):
         self.kg.add_node(node_uid="test_louvain_node_1", node_data=node_data_1)
         self.kg.add_node(node_uid="test_louvain_node_2", node_data=node_data_2)
         self.kg.add_node(node_uid="test_louvain_node_3", node_data=node_data_3)
-        self.kg.add_node(node_uid="test_louvain_node_4", node_data=node_data_3)
+        self.kg.add_node(node_uid="test_louvain_node_4", node_data=node_data_4)
 
         # 2. Add edges to create a connected structure for community detection
         edge_data_1 = EdgeData(
