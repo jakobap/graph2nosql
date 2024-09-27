@@ -1,5 +1,8 @@
-from graph2nosql import NoSQLKnowledgeGraph
-from datamodel.data_model import NodeData, EdgeData, CommunityData
+# from graph2nosql import NoSQLKnowledgeGraph
+# from datamodel.data_model import NodeData, EdgeData, CommunityData
+
+from graph2nosql.graph2nosql.graph2nosql import NoSQLKnowledgeGraph
+from graph2nosql.datamodel.data_model import NodeData, EdgeData, CommunityData
 
 import dotenv
 import os
@@ -281,7 +284,7 @@ class AuraKG(NoSQLKnowledgeGraph):
             pass  # Source node not in target's edges_from, likely due to a directed edge
         return None
 
-    def build_networkx(self) -> None:
+    def build_networkx(self) -> nx.Graph:
         """Builds the NetworkX representation of the full graph.
         https://networkx.org/documentation/stable/index.html
         """
@@ -292,30 +295,36 @@ class AuraKG(NoSQLKnowledgeGraph):
 
             # 1. Fetch all nodes and their properties
             records, summary, keys = driver.execute_query("MATCH (n) RETURN n")
-            for record in records:
-                node = record["n"]
-                node_data = {
-                    "node_uid": node.get("node_uid"),
-                    "node_title": node.get("node_title"),
-                    "node_type": node.get("node_type"),
-                    "node_description": node.get("node_description"),
-                    "node_degree": node.get("node_degree"),
-                    "document_id": node.get("document_id"),
-                    "edges_to": node.get("edges_to", []),
-                    "edges_from": node.get("edges_from", []),
-                    "embedding": node.get("embedding", [])
-                }
-                graph.add_node(node.get("node_uid"), **node_data)
+            
+            # Check if any records were returned
+            if records:
+                for record in records:
+                    node = record["n"]
+                    node_data = {
+                        "node_uid": node.get("node_uid"),
+                        "node_title": node.get("node_title"),
+                        "node_type": node.get("node_type"),
+                        "node_description": node.get("node_description"),
+                        "node_degree": node.get("node_degree"),
+                        "document_id": node.get("document_id"),
+                        "edges_to": node.get("edges_to", []),
+                        "edges_from": node.get("edges_from", []),
+                        "embedding": node.get("embedding", [])
+                    }
+                    graph.add_node(node.get("node_uid"), **node_data)
 
-            # 2. Fetch all relationships and add edges to the graph
-            records, summary, keys = driver.execute_query("MATCH (source)-[r]->(target) RETURN source, r, target")
-            for record in records:
-                source_uid = record["source"]["node_uid"]
-                target_uid = record["target"]["node_uid"]
-                # Add edge attributes if needed (e.g., 'description' from 'r')
-                graph.add_edge(source_uid, target_uid)
+                # 2. Fetch all relationships and add edges to the graph
+                records, summary, keys = driver.execute_query("MATCH (source)-[r]->(target) RETURN source, r, target")
+                for record in records:
+                    source_uid = record["source"]["node_uid"]
+                    target_uid = record["target"]["node_uid"]
+                    # Add edge attributes if needed (e.g., 'description' from 'r')
+                    graph.add_edge(source_uid, target_uid)
+            else:
+                print("Warning: No nodes found in the database. Returning an empty NetworkX graph.")
 
         self.networkx = graph
+        return graph
 
     def store_community(self, community: CommunityData) -> None:
         """Takes valid graph community data and upserts the database with it.
@@ -326,6 +335,24 @@ class AuraKG(NoSQLKnowledgeGraph):
     def _generate_edge_uid(self, source_uid: str, target_uid: str) -> str:
         """Generates Edge uid for the network based on source and target nod uid"""
         return f"{source_uid}_to_{target_uid}"
+
+    def edge_exist(self, source_uid: str, target_uid: str) -> bool:
+        """Checks for edge existence and returns boolean"""
+        try:
+            # Try to retrieve the edge
+            self.get_edge(source_uid, target_uid)
+            return True  # Edge exists
+        except KeyError:
+            return False  # Edge does not exist
+
+    def node_exist(self, node_uid: str) -> bool:
+        """Checks for node existence and returns boolean"""
+        try:
+            # Try to retrieve the node
+            self.get_node(node_uid)
+            return True  # Node exists
+        except KeyError:
+            return False  # Node does not exist
 
     def get_nearest_neighbors(self, query_vec) -> List[str]:
         """Implements nearest neighbor search based on nosql db index."""

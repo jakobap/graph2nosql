@@ -99,6 +99,16 @@ class NoSQLKnowledgeGraph(ABC):
         """Removes all nodes with degree 0."""
         pass
 
+    @abstractmethod
+    def edge_exist(self, source_uid: str, target_uid: str) -> bool:
+        """Checks for edge existence and returns boolean"""
+        pass
+
+    @abstractmethod
+    def node_exist(self, node_uid: str) -> bool:
+        """Checks for node existence and returns boolean"""
+        pass
+
     def visualize_graph(self, filename: str = f"graph_{datetime.datetime.now()}.png") -> None:
         """Visualizes the provided networkx graph using matplotlib.
 
