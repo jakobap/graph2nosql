@@ -56,10 +56,11 @@ class AuraKG(NoSQLKnowledgeGraph):
                 embedding=node_data.embedding
             ).summary
         
-            # print("Created {nodes_created} nodes in {time} ms.".format(
-            #     nodes_created=summary.counters.nodes_created,
-            #     time=summary.result_available_after
-            # ))
+            print("Created {nodes_created} nodes with if {node_uid} in {time} ms.".format(
+                nodes_created=summary.counters.nodes_created,
+                node_uid=node_uid,
+                time=summary.result_available_after
+            ))
         return None
 
     def get_node(self, node_uid: str) -> NodeData:
@@ -180,6 +181,13 @@ class AuraKG(NoSQLKnowledgeGraph):
                 target_uid=edge_data.target_uid,
                 description=edge_data.description
             ).summary
+            
+            print("#### Created {count} egdes {origin} -> {target} egdes in {time} ms.".format(
+                count=str(summary.counters.relationships_created),
+                origin=str(edge_data.source_uid),
+                target=str(edge_data.target_uid),
+                time=str(summary.result_available_after)
+                ))
 
         return None
 
@@ -377,8 +385,8 @@ if __name__ == "__main__":
     if load_status is False:
         raise RuntimeError('Environment variables not loaded.')
 
-    URI = os.getenv("NEO4J_URI")
-    AUTH = (os.getenv("NEO4J_USERNAME"), os.getenv("NEO4J_PASSWORD"))
+    URI = str(os.getenv("NEO4J_URI"))
+    AUTH = (str(os.getenv("NEO4J_USERNAME")), str(os.getenv("NEO4J_PASSWORD")))
 
     aura = AuraKG(uri=URI, auth=AUTH)
 
