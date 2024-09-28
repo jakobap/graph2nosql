@@ -108,6 +108,11 @@ class NoSQLKnowledgeGraph(ABC):
         """Checks for node existence and returns boolean"""
         pass
 
+    @abstractmethod
+    def flush_kg(self) -> None:
+        """Method to wipe the complete datastore of the knowledge graph"""
+        pass
+
     def visualize_graph(self, filename: str = f"graph_{datetime.datetime.now()}.png") -> None:
         """Visualizes the provided networkx graph using matplotlib.
 

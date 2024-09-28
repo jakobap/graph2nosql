@@ -9,7 +9,7 @@ import os
 from typing import Dict, List
 
 from neo4j import GraphDatabase
-import networkx as nx
+import networkx as nx  # type: ignore
 
 
 class AuraKG(NoSQLKnowledgeGraph):
@@ -377,6 +377,18 @@ class AuraKG(NoSQLKnowledgeGraph):
     def clean_zerodegree_nodes(self) -> None:
         """Removes all nodes with degree 0."""
         pass
+
+    def flush_kg(self) -> None:
+        """Method to wipe the complete datastore of the knowledge graph"""
+        with GraphDatabase.driver(self.uri, auth=self.auth) as driver:
+            driver.verify_connectivity()
+            summary = driver.execute_query(
+                """
+                MATCH (n) 
+                DETACH DELETE n
+                """
+            ).summary
+        return None
 
 
 if __name__ == "__main__":
