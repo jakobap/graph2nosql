@@ -1,14 +1,13 @@
 
-from datamodel.data_model import NodeData, EdgeData, CommunityData, NodeEmbeddings 
+from ..datamodel.data_model import NodeData, EdgeData, CommunityData, NodeEmbeddings 
 
 from re import A
-import networkx
 
 from abc import ABC, abstractmethod
 from typing import Dict, List
 import datetime
 
-import networkx as nx
+import networkx as nx # type: ignore
 import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
 import graspologic as gc
