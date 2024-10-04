@@ -1,18 +1,21 @@
-from graph2nosql import NoSQLKnowledgeGraph
-from datamodel.data_model import NodeData, EdgeData, CommunityData
+# from ..datamodel.data_model import NodeData, EdgeData, CommunityData
+from graph2nosql.datamodel.data_model import NodeData, EdgeData, CommunityData
+from graph2nosql.graph2nosql.graph2nosql import NoSQLKnowledgeGraph
+# from graph2nosql.graph2nosql import NoSQLKnowledgeGraph
+# from graph2nosql.datamodel.data_model import NodeData, EdgeData, CommunityData
 
-from matplotlib.pylab import source
+from matplotlib.pylab import source # type: ignore
 
 from typing import Dict, List
 import datetime
 
-import firebase_admin
+import firebase_admin # type: ignore
 from firebase_admin import firestore
 from google.cloud.firestore_v1.base_vector_query import DistanceMeasure
 from google.cloud.firestore_v1.vector import Vector
 import google.auth
 
-import networkx as nx
+import networkx as nx # type: ignore
 
 
 class FirestoreKG(NoSQLKnowledgeGraph):
@@ -443,7 +446,7 @@ class FirestoreKG(NoSQLKnowledgeGraph):
         else:
             return False
 
-    def get_nearest_neighbors(self, query_vec: list[float]) -> List[dict]:
+    def get_nearest_neighbors(self, query_vec: list[float]) -> list:
         """
         Implements nearest neighbor search based on Firestore embedding index:
         https://firebase.google.com/docs/firestore/vector-search
@@ -457,7 +460,6 @@ class FirestoreKG(NoSQLKnowledgeGraph):
         query_vector=Vector(query_vec),
         distance_measure=DistanceMeasure.EUCLIDEAN,
         limit=10).get()
-    
         return [n.to_dict() for n in nn]
 
     def clean_zerodegree_nodes(self) -> None:
@@ -474,6 +476,14 @@ class FirestoreKG(NoSQLKnowledgeGraph):
         # 2. Remove the identified nodes
         for node_uid in nodes_to_remove:
             self.remove_node(node_uid)
+        return None
+
+    def flush_kg(self) -> None:
+        """Method to wipe the complete datastore of the knowledge graph"""
+        for collection_id in [self.node_coll_id, self.edges_coll_id, self.community_coll_id]:
+            docs = self.db.collection(collection_id).stream()
+            for doc in docs:
+                doc.reference.delete()
         return None
 
 if __name__ == "__main__":

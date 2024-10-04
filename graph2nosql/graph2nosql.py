@@ -1,14 +1,13 @@
 
-from datamodel.data_model import NodeData, EdgeData, CommunityData, NodeEmbeddings 
+from ..datamodel.data_model import NodeData, EdgeData, CommunityData, NodeEmbeddings 
 
 from re import A
-import networkx
 
 from abc import ABC, abstractmethod
 from typing import Dict, List
 import datetime
 
-import networkx as nx
+import networkx as nx # type: ignore
 import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
 import graspologic as gc
@@ -97,6 +96,21 @@ class NoSQLKnowledgeGraph(ABC):
     @abstractmethod
     def clean_zerodegree_nodes(self) -> None:
         """Removes all nodes with degree 0."""
+        pass
+
+    @abstractmethod
+    def edge_exist(self, source_uid: str, target_uid: str) -> bool:
+        """Checks for edge existence and returns boolean"""
+        pass
+
+    @abstractmethod
+    def node_exist(self, node_uid: str) -> bool:
+        """Checks for node existence and returns boolean"""
+        pass
+
+    @abstractmethod
+    def flush_kg(self) -> None:
+        """Method to wipe the complete datastore of the knowledge graph"""
         pass
 
     def visualize_graph(self, filename: str = f"graph_{datetime.datetime.now()}.png") -> None:
