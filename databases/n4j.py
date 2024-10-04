@@ -1,8 +1,5 @@
-# from graph2nosql import NoSQLKnowledgeGraph
-# from datamodel.data_model import NodeData, EdgeData, CommunityData
-
-from graph2nosql.graph2nosql.graph2nosql import NoSQLKnowledgeGraph
-from graph2nosql.datamodel.data_model import NodeData, EdgeData, CommunityData
+from base.operations import NoSQLKnowledgeGraph
+from datamodel.data_model import NodeData, EdgeData, CommunityData
 
 import dotenv
 import os

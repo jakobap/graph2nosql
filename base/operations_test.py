@@ -1,8 +1,4 @@
-# from graph2nosql.graph2nosql import NoSQLKnowledgeGraph
-# from databases.firestore_kg import FirestoreKG
-# from datamodel.data_model import NodeData, EdgeData, CommunityData
-
-from graph2nosql import NoSQLKnowledgeGraph
+from base.operations import NoSQLKnowledgeGraph
 from databases.firestore_kg import FirestoreKG
 from databases.n4j import AuraKG
 from datamodel.data_model import NodeData, EdgeData, CommunityData
@@ -11,6 +7,14 @@ import unittest
 from abc import ABC, abstractmethod
 
 import networkx as nx
+
+
+def suite():
+    suite = unittest.TestSuite()
+    suite.addTest(unittest.makeSuite(FirestoreKGTest))
+    suite.addTest(unittest.makeSuite(AuraKGTest))
+    # Add tests for other database classes as needed
+    return suite
 
 
 class _NoSQLKnowledgeGraphTests(ABC):
@@ -730,15 +734,16 @@ class AuraKGTest(_NoSQLKnowledgeGraphTests, unittest.TestCase):
         with GraphDatabase.driver(URI, auth=AUTH) as driver:
             driver.verify_connectivity()
 
-            summary = driver.execute_query(
-                """
-                MATCH (n) 
-                DETACH DELETE n
-                """
-            ).summary
+            # summary = driver.execute_query(
+            #     """
+            #     MATCH (n) 
+            #     DETACH DELETE n
+            #     """
+            # ).summary
             
         # Create an instance of your AuraKG class
         return AuraKG(uri=URI, auth=AUTH)
 
 if __name__ == "__main__":
-    unittest.main() 
+    runner = unittest.TextTestRunner()
+    runner.run(suite())

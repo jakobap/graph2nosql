@@ -1,6 +1,7 @@
 
-from ..datamodel.data_model import NodeData, EdgeData, CommunityData, NodeEmbeddings 
-
+# from graph2nosql.data_model import NodeData, EdgeData, CommunityData
+# from ..datamodel.data_model import NodeData, EdgeData, CommunityData
+from datamodel.data_model import NodeData, EdgeData, CommunityData, NodeEmbeddings
 from re import A
 
 from abc import ABC, abstractmethod
