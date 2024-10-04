@@ -6,7 +6,7 @@ from datamodel.data_model import NodeData, EdgeData, CommunityData
 import unittest
 from abc import ABC, abstractmethod
 
-import networkx as nx
+import networkx as nx # type: ignore
 
 
 def suite():
