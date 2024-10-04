@@ -8,16 +8,21 @@
   packages = [
     pkgs.python311
     pkgs.python311Packages.pip
+    pkgs.streamlit
+    pkgs.gnumake
   ];
-
-  # Sets environment variables in the workspace
-  env = {};
   idx = {
     # Search for the extensions you want on https://open-vsx.org/ and use "publisher.id"
     extensions = [
       "ms-python.autopep8"
       "ms-python.debugpy"
       "ms-python.pythonv2024.12.3"
+      "googlecloudtools.cloudcode"
+      "ms-toolsai.jupyter"
+      "ms-toolsai.jupyter-keymap"
+      "ms-toolsai.jupyter-renderers"
+      "ms-toolsai.vscode-jupyter-cell-tags"
+      "ms-toolsai.vscode-jupyter-slideshow"
     ];
     # Enable previews
     previews = {
