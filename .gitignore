@@ -1,6 +1,6 @@
 *.json
 .DS_Store
-*-venv
+*.venv*
 .env
 .graph2nosql_venv
 *.pyc
