@@ -1,9 +1,7 @@
-from datamodel.data_model import NodeData, EdgeData, CommunityData
-from base.operations import NoSQLKnowledgeGraph
+"""Firestore database operations implementation"""
 
-from matplotlib.pylab import source # type: ignore
+from typing import List
 
-from typing import Dict, List
 import datetime
 
 import firebase_admin # type: ignore
@@ -13,9 +11,14 @@ from google.cloud.firestore_v1.vector import Vector
 import google.auth
 
 import networkx as nx # type: ignore
+from matplotlib.pylab import source # type: ignore
+
+from datamodel.data_model import NodeData, EdgeData, CommunityData
+from base.operations import NoSQLKnowledgeGraph
 
 
 class FirestoreKG(NoSQLKnowledgeGraph):
+    """Firestore database operations implementation class"""
     def __init__(self,
                  gcp_project_id: str,
                  gcp_credential_file: str,
