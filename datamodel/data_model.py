@@ -1,3 +1,5 @@
+"""Module providing Data Model definitions for storing and processing Graph Data. """
+
 from dataclasses import dataclass, field
 from typing import Tuple
 import numpy as np
@@ -7,7 +9,7 @@ import numpy as np
 class EdgeData:
     """EdgeData data model definition"""
     source_uid: str
-    target_uid: str 
+    target_uid: str
     description: str
     directed: bool = True
     edge_uid: str | None = None
@@ -23,7 +25,7 @@ class NodeData:
     node_description: str
     node_degree: int
     document_id: str # identifier for source knowlede base document for this entity
-    community_id: int | None = None # community id based on source document 
+    community_id: int | None = None # community id based on source document
     edges_to: list[str] = field(default_factory=list)
     edges_from: list[str] = field(default_factory=list)  # in case of directed graph
     embedding: list[float] = field(default_factory=list)  # text embedding for node
@@ -37,7 +39,7 @@ class CommunityData:
     summary: str | None = None # description of comm, None if not yet computed
     document_id: str | None = None # identifier for source knowlede base document for this entity
     community_uid: str | None = None # community identifier
-    community_embedding: Tuple[float, ...] = field(default_factory=tuple) # text embedding for community
+    community_embedding: Tuple[float, ...] = field(default_factory=tuple) 
     rating: int | None = None
     rating_explanation: str | None = None
     findings: list[dict] | None = None
