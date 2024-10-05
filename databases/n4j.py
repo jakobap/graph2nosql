@@ -1,9 +1,9 @@
 """Neo4j database operations"""
 
-from typing import Dict, List
+import os
+from typing import List
 
 import dotenv
-import os
 
 from neo4j import GraphDatabase
 import networkx as nx  # type: ignore
