@@ -139,7 +139,7 @@ class MongoKG(NoSQLKnowledgeGraph):
         else:
             raise KeyError(f"Error: No node found with node_uid: {node_uid}")
 
-    def add_edge(self, edge_data: EdgeData, directed: bool = True) -> None:
+    def add_edge(self, edge_data: EdgeData) -> None:
         """Adds an edge (relationship) between two entities in the knowledge graph."""
 
         #TODO: consider moving to base class.
@@ -173,7 +173,7 @@ class MongoKG(NoSQLKnowledgeGraph):
                        source_uid=edge_data.source_uid,
                        description=edge_data.description)
 
-            if not directed:  # If undirected, add the reverse edge as well
+            if not edge_data.directed:  # If undirected, add the reverse edge as well
                 target_node_data.edges_to = list(set(target_node_data.edges_to) | {edge_data.source_uid})
                 self.update_node(edge_data.target_uid, target_node_data)
 
@@ -209,6 +209,9 @@ class MongoKG(NoSQLKnowledgeGraph):
 
     def update_edge(self, edge_data: EdgeData) -> None:
         """Updates an existing edge in the knowledge graph."""
+
+        # TODO: Consider moving to base
+
         # 1. Validate input and check if the edge exists
         if not isinstance(edge_data, EdgeData):
             raise TypeError(f"Error: edge_data must be of type EdgeData, not {type(edge_data)}")
@@ -250,7 +253,69 @@ class MongoKG(NoSQLKnowledgeGraph):
 
     def remove_edge(self, source_uid: str, target_uid: str) -> None:
         """Removes an edge between two entities."""
-        pass
+        
+        # Get involved edge and node data
+        try:
+            edge_data = self.get_edge(source_uid=source_uid, target_uid=target_uid)
+        except Exception as e:
+            raise Exception(f"Error getting edge: {e}") from e
+
+        try:
+            source_node_data = self.get_node(node_uid=source_uid)
+        except Exception as e:
+            raise Exception(f"Error getting source node: {e}") from e
+
+        try:
+            target_node_data = self.get_node(node_uid=target_uid)
+        except Exception as e:
+            raise Exception(f"Error getting target node: {e}") from e
+
+        # remove target_uid from from source -> target
+        try:
+            source_node_data.edges_to.remove(target_uid)
+            self.update_node(source_uid, source_node_data)
+        except ValueError as e:
+            raise ValueError(f"Error: Target node not in source's edges_to: {e}")
+
+        # remove source_uid from target <- source 
+        try:
+            target_node_data.edges_from.remove(source_uid)
+            self.update_node(target_uid, target_node_data)
+        except ValueError as e:
+            raise ValueError(f"Error: Source node not in target's edges_to: {e}")
+
+        # Remove the edge from the edges collection
+        edge_uid = self._generate_edge_uid(source_uid, target_uid)
+        delete_result = self.mdbe_edges_coll.delete_one({"edge_uid": edge_uid})
+        if delete_result.deleted_count == 0:
+            raise KeyError(f"Error: No edge found with source_uid '{source_uid}' and target_uid '{target_uid}'")
+
+        # remove the opposite direction if edge undirected
+        if not edge_data.directed:
+            # remove target_uid from source <- target
+            try:
+                source_node_data.edges_from.remove(target_uid)
+                self.update_node(source_uid, source_node_data)
+            except ValueError as e:
+                raise ValueError(f"Error: Target node not in source's edges_to: {e}")
+            
+            # remove source_uid from target -> source
+            try:
+                target_node_data.edges_to.remove(source_uid)
+                self.update_node(target_uid, target_node_data)
+            except ValueError as e:
+                raise ValueError(f"Error: Source node not in target's edges_to: {e}")
+
+            # Remove the edge from the edges collection
+            reverse_edge_uid = self._generate_edge_uid(target_uid, source_uid)
+            delete_result = self.mdbe_edges_coll.delete_one({"edge_uid": reverse_edge_uid})
+            if delete_result.deleted_count == 0:
+                raise KeyError(f"Error: No reverse edge found with source_uid '{target_uid}' and target_uid '{source_uid}'")
+
+        else:
+            pass
+
+        return None
 
     def build_networkx(self) -> None:
         """Builds the NetworkX representation of the full graph.
