@@ -1,13 +1,21 @@
+import unittest
+from abc import ABC, abstractmethod
+
+import os
+import dotenv
+from dotenv import dotenv_values
+
+from neo4j import GraphDatabase
+from pymongo.mongo_client import MongoClient
+from pymongo.server_api import ServerApi
+
+import networkx as nx # type: ignore
+
 from base.operations import NoSQLKnowledgeGraph
 from databases.firestore_kg import FirestoreKG
 from databases.n4j import AuraKG
 from databases.mdb import MongoKG
-from datamodel.data_model import NodeData, EdgeData, CommunityData
-
-import unittest
-from abc import ABC, abstractmethod
-
-import networkx as nx # type: ignore
+from datamodel.data_model import NodeData, EdgeData
 
 
 def suite():
@@ -685,11 +693,17 @@ class _NoSQLKnowledgeGraphTests(ABC):
 
 
 class FirestoreKGTests(_NoSQLKnowledgeGraphTests, unittest.TestCase):
+    """
+    Test cases for the FirestoreKG implementation of NoSQLKnowledgeGraph.
+
+    This test suite inherits from _NoSQLKnowledgeGraphTests to reuse common test cases.
+    It specifically tests the FirestoreKG class by creating an instance connected to a Firestore
+    database and then running various operations on it.
+
+    Before running the tests, it attempts to clear the Firestore collections to ensure a clean slate.
+    However, this clearing operation is currently commented out.
+    """
     def create_kg_instance(self) -> NoSQLKnowledgeGraph:
-
-        import os
-        from dotenv import dotenv_values
-
         os.chdir(os.path.dirname(os.path.abspath(__file__))) 
 
         secrets = dotenv_values("../.env")
@@ -711,20 +725,22 @@ class FirestoreKGTests(_NoSQLKnowledgeGraphTests, unittest.TestCase):
         )
 
         # Clear the collections before running tests
-        # for collection_id in [node_coll_id, edges_coll_id, community_coll_id]:
-        #     docs = fskg.db.collection(collection_id).stream()
-        #     for doc in docs:
-        #         doc.reference.delete()
-
+        # fskg.flush_kg()
         return fskg
 
 
 class AuraKGTest(_NoSQLKnowledgeGraphTests, unittest.TestCase):
-    def create_kg_instance(self) -> NoSQLKnowledgeGraph:
-        import os
-        import dotenv
-        from neo4j import GraphDatabase
+    """
+    Test cases for the Neo4j Aura implementation of NoSQLKnowledgeGraph.
 
+    This test suite inherits from _NoSQLKnowledgeGraphTests to reuse common test cases.
+    It specifically tests the Neo4j Aura class by creating an instance connected to a Neo4j Aura
+    database and then running various operations on it.
+
+    Before running the tests, it attempts to clear the Neo4j Aura collections to ensure a clean slate.
+    However, this clearing operation is currently commented out.
+    """
+    def create_kg_instance(self) -> NoSQLKnowledgeGraph:
         os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
         secrets = dotenv.load_dotenv("../Neo4j-39cb28f0-Created-2024-09-23.txt")
@@ -732,28 +748,25 @@ class AuraKGTest(_NoSQLKnowledgeGraphTests, unittest.TestCase):
         URI = os.getenv("NEO4J_URI")
         AUTH = (os.getenv("NEO4J_USERNAME"), os.getenv("NEO4J_PASSWORD"))
 
-        with GraphDatabase.driver(URI, auth=AUTH) as driver:
-            driver.verify_connectivity()
+        aura = AuraKG(uri=URI, auth=AUTH)
 
-            # summary = driver.execute_query(
-            #     """
-            #     MATCH (n) 
-            #     DETACH DELETE n
-            #     """
-            # ).summary
-            
-        # Create an instance of your AuraKG class
-        return AuraKG(uri=URI, auth=AUTH)
+        # empty graph store before running tests
+        # aura.flush_kg()
+        return aura
 
 
 class MongoKGTest(_NoSQLKnowledgeGraphTests, unittest.TestCase):
+    """
+    Test cases for the MongoDB implementation of NoSQLKnowledgeGraph.
+
+    This test suite inherits from _NoSQLKnowledgeGraphTests to reuse common test cases.
+    It specifically tests the MongoDB class by creating an instance connected to a MongoDB
+    database and then running various operations on it.
+
+    Before running the tests, it attempts to clear the MongoDB collections to ensure a clean slate.
+    However, this clearing operation is currently commented out.
+    """
     def create_kg_instance(self) -> NoSQLKnowledgeGraph:
-        import os
-        from dotenv import dotenv_values
-
-        from pymongo.mongo_client import MongoClient
-        from pymongo.server_api import ServerApi
-
         os.chdir(os.path.dirname(os.path.abspath(__file__))) 
 
         secrets = dotenv_values("../.env")
