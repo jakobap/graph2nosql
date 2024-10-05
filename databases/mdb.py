@@ -1,17 +1,10 @@
-from datamodel.data_model import NodeData, EdgeData, CommunityData, NodeEmbeddings
+from datamodel.data_model import NodeData, EdgeData, CommunityData
 from base.operations import NoSQLKnowledgeGraph
 
 from pymongo.mongo_client import MongoClient
 from pymongo.server_api import ServerApi
 
-from re import A
-from typing import Dict, List
-import datetime
-
-import networkx as nx  # type: ignore
-import matplotlib.pyplot as plt
-from matplotlib.lines import Line2D
-import graspologic as gc
+from typing import List
 
 
 class MongoKG(NoSQLKnowledgeGraph):
