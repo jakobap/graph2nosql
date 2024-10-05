@@ -8,7 +8,7 @@ from pymongo.server_api import ServerApi
 from datamodel.data_model import NodeData, EdgeData, CommunityData
 from base.operations import NoSQLKnowledgeGraph
 
-import networkx as nx
+import networkx as nx # type: ignore
 
 
 class MongoKG(NoSQLKnowledgeGraph):

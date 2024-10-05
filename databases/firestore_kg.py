@@ -2,8 +2,6 @@
 
 from typing import List
 
-import datetime
-
 import firebase_admin # type: ignore
 from firebase_admin import firestore
 from google.cloud.firestore_v1.base_vector_query import DistanceMeasure
@@ -11,7 +9,6 @@ from google.cloud.firestore_v1.vector import Vector
 import google.auth
 
 import networkx as nx # type: ignore
-from matplotlib.pylab import source # type: ignore
 
 from datamodel.data_model import NodeData, EdgeData, CommunityData
 from base.operations import NoSQLKnowledgeGraph

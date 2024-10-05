@@ -1,13 +1,11 @@
+"""graph2nosql database operations unittests"""
+
 import unittest
 from abc import ABC, abstractmethod
 
 import os
 import dotenv
 from dotenv import dotenv_values
-
-from neo4j import GraphDatabase
-from pymongo.mongo_client import MongoClient
-from pymongo.server_api import ServerApi
 
 import networkx as nx # type: ignore
 
@@ -16,14 +14,6 @@ from databases.firestore_kg import FirestoreKG
 from databases.n4j import AuraKG
 from databases.mdb import MongoKG
 from datamodel.data_model import NodeData, EdgeData
-
-
-def suite():
-    suite = unittest.TestSuite()
-    suite.addTest(unittest.makeSuite(FirestoreKGTest))
-    suite.addTest(unittest.makeSuite(AuraKGTest))
-    # Add tests for other database classes as needed
-    return suite
 
 
 class _NoSQLKnowledgeGraphTests(ABC):
@@ -788,6 +778,15 @@ class MongoKGTest(_NoSQLKnowledgeGraphTests, unittest.TestCase):
         mkg.flush_kg()
 
         return mkg
+
+
+def suite():
+    suite = unittest.TestSuite()
+    suite.addTest(unittest.makeSuite(FirestoreKGTest))
+    suite.addTest(unittest.makeSuite(AuraKGTest))
+    suite.addTest(unittest.makeSuite(MongoKGTest))
+    # Add tests for other database classes as needed
+    return suite
 
 
 if __name__ == "__main__":
