@@ -5,6 +5,7 @@ import numpy as np
 
 @dataclass
 class EdgeData:
+    """EdgeData data model definition"""
     source_uid: str
     target_uid: str 
     description: str
@@ -15,6 +16,7 @@ class EdgeData:
 
 @dataclass
 class NodeData:
+    """NodeData data model definition"""
     node_uid: str
     node_title: str
     node_type: str
@@ -24,17 +26,18 @@ class NodeData:
     community_id: int | None = None # community id based on source document 
     edges_to: list[str] = field(default_factory=list)
     edges_from: list[str] = field(default_factory=list)  # in case of directed graph
-    embedding: list[float] = field(default_factory=list)  # text embedding representing node e.g. combination of title & description
+    embedding: list[float] = field(default_factory=list)  # text embedding for node
 
 
 @dataclass
 class CommunityData:
+    """CommunityData data model definition"""
     title: str # title of comm, None if not yet computed
     community_nodes: set[str] = field(default_factory=set) # list of node_uid belonging to community
     summary: str | None = None # description of comm, None if not yet computed
     document_id: str | None = None # identifier for source knowlede base document for this entity
     community_uid: str | None = None # community identifier
-    community_embedding: Tuple[float, ...] = field(default_factory=tuple) # text embedding representing community
+    community_embedding: Tuple[float, ...] = field(default_factory=tuple) # text embedding for community
     rating: int | None = None
     rating_explanation: str | None = None
     findings: list[dict] | None = None
@@ -43,11 +46,11 @@ class CommunityData:
         """Converts the CommunityData instance to a dictionary."""
         return {
             "title": self.title,
-            "community_nodes": list(self.community_nodes),  # Convert set to list for JSON serialization
+            "community_nodes": list(self.community_nodes),  # Convert set to list 
             "summary": self.summary,
             "document_id": self.document_id,
             "community_uid": self.community_uid,
-            "community_embedding": list(self.community_embedding),  # Convert tuple to list for JSON serialization
+            "community_embedding": list(self.community_embedding),  # Convert tuple to list 
             "rating": self.rating,
             "rating_explanation": self.rating_explanation,
             "findings": self.findings
@@ -69,10 +72,8 @@ class CommunityData:
         )
 
 
-
 @dataclass
 class NodeEmbeddings:
     """Node embeddings class definition."""
-
     nodes: list[str]
     embeddings: np.ndarray
