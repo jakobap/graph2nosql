@@ -1,13 +1,16 @@
-from datamodel.data_model import NodeData, EdgeData, CommunityData
-from base.operations import NoSQLKnowledgeGraph
+"""MongoDB Database Operations"""
 
 from pymongo.mongo_client import MongoClient
 from pymongo.server_api import ServerApi
 
 from typing import List
 
+from datamodel.data_model import NodeData, EdgeData, CommunityData
+from base.operations import NoSQLKnowledgeGraph
+
 
 class MongoKG(NoSQLKnowledgeGraph):
+    """MongoDB Database Operations Class"""
     def __init__(self,
                  mdb_uri: str,
                  mdb_db_id: str,

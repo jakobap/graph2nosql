@@ -180,7 +180,7 @@ class FirestoreKG(NoSQLKnowledgeGraph):
         # 4. Finally, remove the node itself
         doc_ref.delete()
 
-    def add_edge(self, edge_data: EdgeData, directed: bool = True) -> None:
+    def add_edge(self, edge_data: EdgeData) -> None:
         """
         Adds an edge (relationship) between two entities in the knowledge graph.
 
@@ -220,7 +220,7 @@ class FirestoreKG(NoSQLKnowledgeGraph):
                        source_uid=edge_data.source_uid,
                        description=edge_data.description)
 
-            if not directed:  # If undirected, add the reverse edge as well
+            if not edge_data.directed:  # If undirected, add the reverse edge as well
                 target_node_data.edges_to = list(set(target_node_data.edges_to) | {edge_data.source_uid})
                 self.update_node(edge_data.target_uid, target_node_data)
 

@@ -41,7 +41,7 @@ class NoSQLKnowledgeGraph(ABC):
         pass
 
     @abstractmethod
-    def add_edge(self, edge_data: EdgeData, directed: bool = True) -> None:
+    def add_edge(self, edge_data: EdgeData) -> None:
         """Adds an edge (relationship) between two entities in the knowledge graph."""
         pass
 

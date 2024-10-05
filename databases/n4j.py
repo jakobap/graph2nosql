@@ -1,12 +1,15 @@
-from base.operations import NoSQLKnowledgeGraph
-from datamodel.data_model import NodeData, EdgeData, CommunityData
+"""Neo4j database operations"""
+
+from typing import Dict, List
 
 import dotenv
 import os
-from typing import Dict, List
 
 from neo4j import GraphDatabase
 import networkx as nx  # type: ignore
+
+from base.operations import NoSQLKnowledgeGraph
+from datamodel.data_model import NodeData, EdgeData, CommunityData
 
 
 class AuraKG(NoSQLKnowledgeGraph):
@@ -141,7 +144,7 @@ class AuraKG(NoSQLKnowledgeGraph):
                 f"Error: No node found with node_uid: {node_uid}")
         return None
 
-    def add_edge(self, edge_data: EdgeData, directed: bool = True) -> None:
+    def add_edge(self, edge_data: EdgeData) -> None:
         """Adds an edge (relationship) between two entities in the knowledge graph."""
 
         # get source and target node data
@@ -158,13 +161,13 @@ class AuraKG(NoSQLKnowledgeGraph):
 
         self.driver.verify_connectivity()
 
-        if directed:
+        if edge_data.directed:
             query = """
             MATCH (source:""" + source_node_data.node_type + """ {node_uid: $source_uid}), (target:""" + target_node_data.node_type + """ {node_uid: $target_uid})
             CREATE (source)-[:DIRECTED {description: $description}]->(target)
             """
 
-        elif not directed:
+        elif not edge_data.directed:
             query = """
             MATCH (source:""" + source_node_data.node_type + """ {node_uid: $source_uid}), (target:""" + target_node_data.node_type + """ {node_uid: $target_uid})
             CREATE (source)-[:UNDIRECTED {description: $description}]->(target), (target)-[:UNDIRECTED {description: $description}]->(source)
