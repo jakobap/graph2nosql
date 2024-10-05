@@ -8,6 +8,7 @@ class EdgeData:
     source_uid: str
     target_uid: str 
     description: str
+    directed: bool = True
     edge_uid: str | None = None
     document_id: str | None = None
 
