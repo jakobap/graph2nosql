@@ -23,11 +23,9 @@ class _NoSQLKnowledgeGraphTests(ABC):
     Concrete test classes for specific NoSQL databases should inherit from this class
     and implement the required abstract methods.
     """
-
     @abstractmethod
     def create_kg_instance(self) -> NoSQLKnowledgeGraph:
         """Create and return an instance of the NoSQLKnowledgeGraph implementation."""
-        pass
 
     def setUp(self):
         """Set up for test methods."""
@@ -35,7 +33,7 @@ class _NoSQLKnowledgeGraphTests(ABC):
         # Add any setup logic specific to your NoSQL database here
 
     def test_add_and_remove_node(self):
-        # Add a node
+        """ Test adding a node"""
         node_data = NodeData(
             node_uid="added_test_node_1",
             node_title="Test Node 1",
@@ -62,7 +60,7 @@ class _NoSQLKnowledgeGraphTests(ABC):
             self.kg.get_node(node_uid="added_test_node_1")
 
     def test_update_node(self):
-        # Add a node
+        """Add a node"""
         node_data = NodeData(
             node_uid="test_update_node_1",
             node_title="Test Node 1",
@@ -101,8 +99,8 @@ class _NoSQLKnowledgeGraphTests(ABC):
         # Remove the node
         self.kg.remove_node(node_uid="test_update_node_1")
 
-    def add_node_with_egde(self):
-        # Add a node with edge to other node that doesn't exist
+    def test_add_node_with_edge(self):
+        """Add a node with edge to other node that doesn't exist"""
         node_data = NodeData(
             node_uid="test_egde_node_1",
             node_title="Test Node 1",
@@ -208,7 +206,8 @@ class _NoSQLKnowledgeGraphTests(ABC):
         edge_data = EdgeData(
             source_uid="test_directed_node_1",
             target_uid="test_directed_node_2",
-            description="This is a test egde description"
+            description="This is a test egde description",
+            directed=True
         )
 
         self.kg.add_edge(edge_data=edge_data)
@@ -219,12 +218,13 @@ class _NoSQLKnowledgeGraphTests(ABC):
         self.assertIn("test_directed_node_2", node1.edges_to) # type: ignore
         self.assertIn("test_directed_node_1", node2.edges_from) # type: ignore
 
+        # Clean Up egdes
+        self.kg.remove_edge(source_uid="test_directed_node_1", target_uid="test_directed_node_2")
+
         # Clean Up nodes
         self.kg.remove_node(node_uid="test_directed_node_1")
         self.kg.remove_node(node_uid="test_directed_node_2")
 
-        # Clean Up egdes
-        self.kg.remove_edge(source_uid="test_directed_node_1", target_uid="test_directed_node_2")
 
     def test_add_undirecred_edge(self):
         """Test adding an edge between nodes."""
@@ -260,10 +260,11 @@ class _NoSQLKnowledgeGraphTests(ABC):
         edge_data = EdgeData(
             source_uid="test_undirected_node_1",
             target_uid="test_undirected_node_2",
-            description="This is a test egde description"
+            description="This is a test egde description",
+            directed=False
         )
 
-        self.kg.add_edge(edge_data=edge_data, directed=False)
+        self.kg.add_edge(edge_data=edge_data)
 
         # Assert that the edge is reflected in the nodes' edge lists
         node1 = self.kg.get_node("test_undirected_node_1")
@@ -273,13 +274,13 @@ class _NoSQLKnowledgeGraphTests(ABC):
         self.assertIn("test_undirected_node_1", node2.edges_from) # type: ignore
         self.assertIn("test_undirected_node_2", node1.edges_from) # type: ignore
 
+        # Clean Up egdes
+        self.kg.remove_edge(source_uid="test_undirected_node_1",target_uid="test_undirected_node_2")
+        self.kg.remove_edge(source_uid="test_undirected_node_2", target_uid="test_undirected_node_1")
+
         # Clean Up nodes
         self.kg.remove_node(node_uid="test_undirected_node_1")
         self.kg.remove_node(node_uid="test_undirected_node_2")
-
-        # Clean Up egdes
-        self.kg.remove_edge(source_uid="test_undirected_node_1", target_uid="test_undirected_node_2")
-        self.kg.remove_edge(source_uid="test_undirected_node_2", target_uid="test_undirected_node_1")
 
     def test_get_edge(self):
         """Test retrieving an existing edge."""
@@ -313,30 +314,32 @@ class _NoSQLKnowledgeGraphTests(ABC):
         edge_data = EdgeData(
             source_uid="test_getedge_node_1",
             target_uid="test_getedge_node_2",
-            description="This might be a description of the relationship of these two nodes"
+            description="This might be a description of the relationship of these two nodes",
+            directed=False
         )
         self.kg.add_edge(edge_data=edge_data)
 
         # Assuming you have a way to retrieve edge data in your implementation
-        retrieved_edge_data = self.kg.get_edge(source_uid="test_getedge_node_1", target_uid="test_getedge_node_2")
-
+        retrieved_edge_data = self.kg.get_edge(source_uid="test_getedge_node_1",
+                                                target_uid="test_getedge_node_2")
 
         new_edge_uid = self.kg._generate_edge_uid(edge_data.source_uid, edge_data.target_uid)
         target_edge_data = EdgeData(
             source_uid="test_getedge_node_1",
             target_uid="test_getedge_node_2",
             description="This might be a description of the relationship of these two nodes",
+            directed=False,
             edge_uid=new_edge_uid
         )
 
         self.assertEqual(retrieved_edge_data, target_edge_data) # type: ignore
 
+        # Clean up edges
+        self.kg.remove_edge(source_uid="test_getedge_node_1", target_uid="test_getedge_node_2")
+
         # Clean up nodes
         self.kg.remove_node(node_uid="test_getedge_node_1")
         self.kg.remove_node(node_uid="test_getedge_node_2")
-
-        # Clean up edges
-        self.kg.remove_edge(source_uid="test_getedge_node_1", target_uid="test_getedge_node_2")
 
     def test_update_edge(self):
         """Test updating the data of an existing edge."""
@@ -672,7 +675,7 @@ class _NoSQLKnowledgeGraphTests(ABC):
         try:
             self.kg.visualize_graph(filename="test_graph.png")
         except Exception as e:
-            raise ValueError(f"An error occurred during visualization: {e}") 
+            raise ValueError(f"An error occurred during visualization: {e}")
 
         # 4. Clean up (optional, depending on your test setup)
         self.kg.remove_edge(source_uid="test_vis_node_1", target_uid="test_vis_node_2")
@@ -694,7 +697,7 @@ class FirestoreKGTests(_NoSQLKnowledgeGraphTests, unittest.TestCase):
     However, this clearing operation is currently commented out.
     """
     def create_kg_instance(self) -> NoSQLKnowledgeGraph:
-        os.chdir(os.path.dirname(os.path.abspath(__file__))) 
+        os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
         secrets = dotenv_values("../.env")
 
@@ -733,12 +736,12 @@ class AuraKGTest(_NoSQLKnowledgeGraphTests, unittest.TestCase):
     def create_kg_instance(self) -> NoSQLKnowledgeGraph:
         os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
-        secrets = dotenv.load_dotenv("../Neo4j-39cb28f0-Created-2024-09-23.txt")
+        dotenv.load_dotenv("../Neo4j-39cb28f0-Created-2024-09-23.txt")
 
-        URI = os.getenv("NEO4J_URI")
-        AUTH = (os.getenv("NEO4J_USERNAME"), os.getenv("NEO4J_PASSWORD"))
+        uri = os.getenv("NEO4J_URI")
+        auth = (os.getenv("NEO4J_USERNAME"), os.getenv("NEO4J_PASSWORD"))
 
-        aura = AuraKG(uri=URI, auth=AUTH)
+        aura = AuraKG(uri=uri, auth=auth)
 
         # empty graph store before running tests
         # aura.flush_kg()
@@ -781,8 +784,9 @@ class MongoKGTest(_NoSQLKnowledgeGraphTests, unittest.TestCase):
 
 
 def suite():
+    """testing suite def"""
     suite = unittest.TestSuite()
-    suite.addTest(unittest.makeSuite(FirestoreKGTest))
+    suite.addTest(unittest.makeSuite(FirestoreKGTests))
     suite.addTest(unittest.makeSuite(AuraKGTest))
     suite.addTest(unittest.makeSuite(MongoKGTest))
     # Add tests for other database classes as needed
