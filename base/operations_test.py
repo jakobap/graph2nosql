@@ -1,6 +1,7 @@
 from base.operations import NoSQLKnowledgeGraph
 from databases.firestore_kg import FirestoreKG
 from databases.n4j import AuraKG
+from databases.mdb import MongoKG
 from datamodel.data_model import NodeData, EdgeData, CommunityData
 
 import unittest
@@ -710,10 +711,10 @@ class FirestoreKGTests(_NoSQLKnowledgeGraphTests, unittest.TestCase):
         )
 
         # Clear the collections before running tests
-        for collection_id in [node_coll_id, edges_coll_id, community_coll_id]:
-            docs = fskg.db.collection(collection_id).stream()
-            for doc in docs:
-                doc.reference.delete()
+        # for collection_id in [node_coll_id, edges_coll_id, community_coll_id]:
+        #     docs = fskg.db.collection(collection_id).stream()
+        #     for doc in docs:
+        #         doc.reference.delete()
 
         return fskg
 
@@ -743,6 +744,38 @@ class AuraKGTest(_NoSQLKnowledgeGraphTests, unittest.TestCase):
             
         # Create an instance of your AuraKG class
         return AuraKG(uri=URI, auth=AUTH)
+
+
+class MongoKGTest(_NoSQLKnowledgeGraphTests, unittest.TestCase):
+    def create_kg_instance(self) -> NoSQLKnowledgeGraph:
+        import os
+        from dotenv import dotenv_values
+
+        from pymongo.mongo_client import MongoClient
+        from pymongo.server_api import ServerApi
+
+        os.chdir(os.path.dirname(os.path.abspath(__file__))) 
+
+        secrets = dotenv_values("../.env")
+
+        mdb_username = str(secrets["MDB_USERNAME"])
+        mdb_passowrd = str(secrets["MDB_PASSWORD"])
+        mdb_cluster = str(secrets["MDB_CLUSTER"])
+        uri = f"mongodb+srv://{mdb_username}:{mdb_passowrd}@cluster0.pjx3w.mongodb.net/?retryWrites=true&w=majority&appName={mdb_cluster}"
+        
+        mkg = MongoKG(
+            mdb_uri=uri,
+            mdb_db_id=str(secrets["MDB_DB_ID"]),
+            node_coll_id=str(secrets["NODE_COLL_ID"]),
+            edges_coll_id=str(secrets["EDGES_COLL_ID"]),
+            community_collection_id=str(secrets["COMM_COLL_ID"])
+        )
+
+        # flush full kg before running tests
+        mkg.flush_kg()
+
+        return mkg
+
 
 if __name__ == "__main__":
     runner = unittest.TextTestRunner()
