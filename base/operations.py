@@ -172,7 +172,8 @@ class NoSQLKnowledgeGraph(ABC):
             louvain_comm_list = nx.algorithms.community.louvain_communities(
                 self.networkx)
             return louvain_comm_list  # type: ignore
-        raise ValueError("Error: NetworkX graph is not initialized. Call build_networkx() first.")
+        raise ValueError(
+            "Error: NetworkX graph is not initialized. Call build_networkx() first.")
 
     def get_node2vec_embeddings(
         self,
