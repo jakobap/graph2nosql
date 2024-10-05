@@ -1,12 +1,14 @@
 """MongoDB Database Operations"""
 
+from typing import List
+
 from pymongo.mongo_client import MongoClient
 from pymongo.server_api import ServerApi
 
-from typing import List
-
 from datamodel.data_model import NodeData, EdgeData, CommunityData
 from base.operations import NoSQLKnowledgeGraph
+
+import networkx as nx
 
 
 class MongoKG(NoSQLKnowledgeGraph):
@@ -22,7 +24,7 @@ class MongoKG(NoSQLKnowledgeGraph):
 
         # Connect and send a ping to confirm a successful mongo db connection
         self.mdb_client = MongoClient(str(mdb_uri), server_api=ServerApi('1'))
-        
+
         self.db = self.mdb_client[mdb_db_id]
         self.mdb_node_coll = self.db[node_coll_id] 
         self.mdbe_edges_coll = self.db[edges_coll_id] 
@@ -249,7 +251,7 @@ class MongoKG(NoSQLKnowledgeGraph):
 
     def remove_edge(self, source_uid: str, target_uid: str) -> None:
         """Removes an edge between two entities."""
-        
+
         # Get involved edge and node data
         try:
             edge_data = self.get_edge(source_uid=source_uid, target_uid=target_uid)
@@ -311,13 +313,23 @@ class MongoKG(NoSQLKnowledgeGraph):
         else:
             pass
 
-        return None
-
     def build_networkx(self) -> None:
         """Builds the NetworkX representation of the full graph.
         https://networkx.org/documentation/stable/index.html
         """
-        pass
+        graph = nx.Graph()  # Initialize an undirected NetworkX graph
+
+        # 1. Add Nodes to the NetworkX Graph
+        for node in self.mdb_node_coll.find():
+            graph.add_node(node['node_uid'], **node)
+
+        # 2. Add Edges to the NetworkX Graph
+        for edge in self.mdbe_edges_coll.find():
+            source_uid = edge['source_uid']
+            target_uid = edge['target_uid']
+            graph.add_edge(source_uid, target_uid)
+
+        self.networkx = graph
 
     def store_community(self, community: CommunityData) -> None:
         """Takes valid graph community data and upserts the database with it.
@@ -347,23 +359,22 @@ class MongoKG(NoSQLKnowledgeGraph):
 
     def get_community(self, community_id: str) -> CommunityData:
         """Retrieves the community report for a given community id."""
-        pass
+        return
 
     def list_communities(self) -> List[CommunityData]:
         """Lists all stored communities for the given network."""
-        pass
+        return
 
     def clean_zerodegree_nodes(self) -> None:
         """Removes all nodes with degree 0."""
-        pass
+        return
 
     def edge_exist(self, source_uid: str, target_uid: str) -> bool:
         """Checks for edge existence and returns boolean"""
         edge_uid = self._generate_edge_uid(source_uid, target_uid)
         if self.mdbe_edges_coll.find_one({"edge_uid": edge_uid}) is not None:
             return True
-        else: 
-            return False
+        return False
 
     def node_exist(self, node_uid: str) -> bool:
         """Checks for node existence and returns boolean"""
@@ -371,7 +382,7 @@ class MongoKG(NoSQLKnowledgeGraph):
             return True
         else: 
             return False
-        
+
     def flush_kg(self) -> None:
         """Method to wipe the complete datastore of the knowledge graph"""
         try:
@@ -400,8 +411,6 @@ if __name__ == "__main__":
     mdb_passowrd = str(secrets["MDB_PASSWORD"])
     mdb_cluster = str(secrets["MDB_CLUSTER"])
 
-    # uri = "mongodb+srv://poerschmann:<db_password>@cluster0.pjx3w.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
-    # uri ="mongodb+srv://poerschmann:<db_password>@cluster0.pjx3w.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
     uri = f"mongodb+srv://{mdb_username}:{mdb_passowrd}@cluster0.pjx3w.mongodb.net/?retryWrites=true&w=majority&appName={mdb_cluster}"
     
     mkg = MongoKG(
