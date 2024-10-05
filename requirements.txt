@@ -4,10 +4,11 @@ matplotlib==3.9.1
 graspologic
 numpy
 future==1.0.0
+python-dotenv==1.0.1
 
 # db specific dependencies
 firebase-admin==6.5.0
-python-dotenv==1.0.1
 neo4j==5.24.0
+pymongo==4.10.1
 
 -e .
