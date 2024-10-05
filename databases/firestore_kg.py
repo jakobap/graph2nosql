@@ -143,6 +143,8 @@ class FirestoreKG(NoSQLKnowledgeGraph):
         Also removed all edges to and from the node to be removed from all other nodes.
         """
         doc_ref = self.db.collection(self.node_coll_id).document(node_uid)
+        
+        # TODO: Update edge collection on edge removal.
 
         # Check if the node exists
         if not doc_ref.get().exists:
@@ -308,6 +310,8 @@ class FirestoreKG(NoSQLKnowledgeGraph):
             target_uid (str): The UID of the target node.
             directed (bool, optional): Whether the edge is directed. Defaults to True.
         """
+
+        # TODO: Attribute for directed and undirected!
 
         edge_uid = self._generate_edge_uid(source_uid, target_uid)
 
