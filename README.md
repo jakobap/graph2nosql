@@ -13,7 +13,8 @@ This is mostly catering own use and currently not regularly updated or maintaine
 
 ### Implemented NoSQL Databases so far:
 * [Firestore](https://firebase.google.com/docs/firestore)
-* Neo4J AuraDB
+* Mongo DB
+* Neo4J 
 
 ### Getting Started
 1. Create an `.env` that stores your secrets & env vars.
