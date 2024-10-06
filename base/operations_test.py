@@ -114,7 +114,7 @@ class _NoSQLKnowledgeGraphTests(ABC):
         )
         
         # Assert that adding the node raises a KeyError (or a more specific exception you handle)
-        with self.assertRaises(KeyError):  # type: ignore # Adjust exception type if needed
+        with self.assertRaises(ValueError):  # type: ignore # Adjust exception type if needed
             self.kg.add_node(node_uid="test_egde_node_1", node_data=node_data)
 
         # Add valid nodes (required for edges)
@@ -148,8 +148,8 @@ class _NoSQLKnowledgeGraphTests(ABC):
             node_description="This is another test node",
             node_degree=0,
             document_id="doc_2",
-            edges_to=["test_node_1",],
-            edges_from=["test_node_2",],
+            edges_to=[],
+            edges_from=[],
             embedding=[0.4, 0.5, 0.6],
         )
 
@@ -157,15 +157,32 @@ class _NoSQLKnowledgeGraphTests(ABC):
         self.kg.add_node(node_uid="test_egde_node_2", node_data=node_data_2)
         self.kg.add_node(node_uid="test_egde_node_3", node_data=node_data_3)
 
+        edge_data1 = EdgeData(
+            source_uid="test_egde_node_1",
+            target_uid="test_egde_node_2",
+            description="This is a test egde description",
+            directed=True
+        )
+
+        edge_data2 = EdgeData(
+            source_uid="test_egde_node_3",
+            target_uid="test_egde_node_2",
+            description="This is a test egde description",
+            directed=False 
+        )
+
+        self.kg.add_edge(edge_data=edge_data1)
+        self.kg.add_edge(edge_data=edge_data2)
+
         # Assert that the edges are reflected in the nodes' edge lists
         node1 = self.kg.get_node("test_egde_node_1")
         node2 = self.kg.get_node("test_egde_node_2")
         node3 = self.kg.get_node("test_egde_node_3")
 
-        self.assertIn("test_egde_node_3", node1.edges_from) # type: ignore
+        self.assertIn("test_egde_node_3", node2.edges_from) # type: ignore
         self.assertIn("test_egde_node_3", node2.edges_to) # type: ignore
-        self.assertIn("test_egde_node_1", node3.edges_to) # type: ignore
-        self.assertIn("test_egde_node_2", node3.edges_from) # type: ignore
+        self.assertIn("test_egde_node_1", node2.edges_from) # type: ignore
+        self.assertIn("test_egde_node_2", node1.edges_to) # type: ignore
 
         # Clean up
         self.kg.remove_node(node_uid="test_egde_node_1")
@@ -276,7 +293,6 @@ class _NoSQLKnowledgeGraphTests(ABC):
 
         # Clean Up egdes
         self.kg.remove_edge(source_uid="test_undirected_node_1",target_uid="test_undirected_node_2")
-        self.kg.remove_edge(source_uid="test_undirected_node_2", target_uid="test_undirected_node_1")
 
         # Clean Up nodes
         self.kg.remove_node(node_uid="test_undirected_node_1")
