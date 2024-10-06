@@ -17,9 +17,9 @@ This repository mostly caters own use and is not regularly updated or maintained
 * [Neo4J for latency & cost benchmark](https://neo4j.com/docs/)
 
 ## Performance Benchmark
+Approximate latency performance benchmark comparing tool and technology. Benchmarking framework [can be found in `./benchmarks`](https://github.com/jakobap/graph2nosql/tree/main/benchmarks).
 
-Approximate latency (processing time in seconds) performance benchmark comparing tool and technology. Benchmarking framework [can be found in `./benchmarks`](https://github.com/jakobap/graph2nosql/tree/main/benchmarks).
-
+Values are processing seconds -> lower = better
 | Feature | Firestore | MongoDB | Neo4j |
 |---|---|---|---|
 | Adding 100 Nodes | 3.03 | 2.51 | 1.91 |
