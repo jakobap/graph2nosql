@@ -4,7 +4,7 @@ import os
 import json
 import time
 from abc import ABC, abstractmethod
-from typing import Any
+from typing import Any, Dict
 
 from dotenv import dotenv_values
 
@@ -15,7 +15,8 @@ import google.auth
 from base.operations import NoSQLKnowledgeGraph
 from databases.firestore_kg import FirestoreKG
 from databases.n4j import AuraKG
-from datamodel.data_model import NodeData, EdgeData, CommunityData
+
+from datamodel.data_model import NodeData, EdgeData
 
 
 class KGDBBenchmarkDataFetcher:
@@ -74,66 +75,49 @@ class KGDBBenchmark(ABC):
 
     def __init__(self,
                  benchmark_name: str,
-                 option_1: NoSQLKnowledgeGraph,
-                 option_2: NoSQLKnowledgeGraph,
+                 options_dict: Dict[str, NoSQLKnowledgeGraph],
                  import_lim: int,
-                 option_1_name: str = "",
-                 option_2_name: str = "",
                  ):
         self.benchmark_name = benchmark_name
-        self.option_1 = option_1
-        self.option_2 = option_2
-        self.option_1_name = option_1_name
-        self.option_2_name = option_2_name
-        self.option_1_time = 0
-        self.option_2_time = 0
         self.import_lim = import_lim
+        self.options_dict = options_dict
+        self.option_names = list(options_dict.keys())
+        self.option_times = {}
 
     def __call__(self, records):
 
         print(
-            f'$$$$ Starting Benchmark {self.option_1_name} vs. {self.option_2_name} $$$$')
+            f'$$$$ Starting Benchmark {self.benchmark_name} with options: {self.option_names} $$$$')
 
-        for row in records:
-            data = self._construct_data(row)
+        for option_name in self.option_names:   
+            start_time = time.time()
 
-            # Option 1
-            start_time_1 = time.time()
-            try:
-                self._db_transaction(kgdb=self.option_1,
-                                     data=data, option_name=self.option_1_name)
-            except:
-                pass
-            end_time_2 = time.time()
-            self.option_1_time += (end_time_2 - start_time_1)
+            for row in records:
+                data = self._construct_data(row)
+                try:
+                    self._db_transaction(kgdb=self.options_dict[option_name],
+                                        data=data, option_name=option_name)
+                except Exception:
+                    pass
 
-            # Option 2
-            start_time_2 = time.time()
-            try:
-                self._db_transaction(kgdb=self.option_2,
-                                     data=data, option_name=self.option_2_name)
-            except:
-                pass
-            end_time_2 = time.time()
-            self.option_2_time += (end_time_2 - start_time_2)
+            end_time = time.time()
+            self.option_times[option_name] = end_time - start_time
 
         self._benchmark_reporting()
         print("hEllO wOrlD!")
 
     def _benchmark_reporting(self) -> None:
-        print(f'{self.option_1_name} time for {self.import_lim} {self.benchmark_name}: {self.option_1_time}')
-        print(f'{self.option_2_name} time for {self.import_lim} {self.benchmark_name}: {self.option_2_time}')
+        for option_name in self.option_names:
+            print(f'{option_name} time for {self.import_lim} {self.benchmark_name}: {self.option_times[option_name]}')
         return None
 
     @abstractmethod
     def _construct_data(self, row: Any):
         """constructs the data to be used for the benchmark db transaction given the data records"""
-        pass
 
     @abstractmethod
     def _db_transaction(self, kgdb: NoSQLKnowledgeGraph, option_name: str, data) -> None:
         """defines the db transaction that this benchmark run should compare"""
-        pass
 
 
 class NodeImportBenchmark(KGDBBenchmark):
@@ -141,22 +125,19 @@ class NodeImportBenchmark(KGDBBenchmark):
     Define Latency Benchmark for Node Import. Inhertits from KGDBBenchmark.
     Implements _construct_data and _db_transaction methods for edge import.
     """
-    def __init__(self, benchmark_name: str,
-                 option_1: NoSQLKnowledgeGraph,
-                 option_2: NoSQLKnowledgeGraph,
+    def __init__(self,
+                 benchmark_name: str,
+                 options_dict: Dict[str, NoSQLKnowledgeGraph],
                  import_lim: int,
-                 option_1_name: str = "Firestore",
-                 option_2_name: str = "Aura",
                  ):
-        super().__init__(benchmark_name, option_1, option_2,
-                         import_lim, option_1_name, option_2_name)
+        super().__init__(benchmark_name, options_dict, import_lim)
 
     def _construct_data(self, row: Any):
         # constructs NodeData given a tuple[str, str, str] record
         record_values = row.values()
 
         body_str = json.loads(record_values[1])[0]
-        alias_list = json.loads(record_values[2])
+        # alias_list = json.loads(record_values[2])
         node_uid = record_values[0]
 
         node_data = NodeData(node_uid=node_uid,
@@ -171,11 +152,9 @@ class NodeImportBenchmark(KGDBBenchmark):
         # defines the db transaction that this benchmark run should compare
         try:
             kgdb.add_node(node_uid=data.node_uid, node_data=data)
-            print(f'Success adding node {data.node_uid} with {option_name}')
+            # print(f'Success adding node {data.node_uid} with {option_name}')
         except Exception as e:
             print(f"Error adding node {data.node_uid} with {option_name}: {e}")
-            pass
-        return None
 
 
 class EdgeImportBenchmark(KGDBBenchmark):
@@ -183,24 +162,21 @@ class EdgeImportBenchmark(KGDBBenchmark):
     Define Latency Benchmark for edge import. Inhertits from KGDBBenchmark.
     Implements _construct_data and _db_transaction methods for edge import.
     """
-    def __init__(self, benchmark_name: str,
-                 option_1: NoSQLKnowledgeGraph,
-                 option_2: NoSQLKnowledgeGraph,
+    def __init__(self,
+                 benchmark_name: str,
+                 options_dict: Dict[str, NoSQLKnowledgeGraph],
                  import_lim: int,
-                 option_1_name: str = "Firestore",
-                 option_2_name: str = "Aura"
                  ):
-        super().__init__(benchmark_name, option_1, option_2,
-                         import_lim, option_1_name, option_2_name)
+        super().__init__(benchmark_name, options_dict, import_lim)
 
     def _construct_data(self, row: Any):
         # constructs NodeData given a tuple[str, str, str] record
-        record_values = row.values()
+        # record_values = row.values()
 
         source_uid = row[0]
         edge_uid = row[1]
         target_uid = row[2]
-        description_body = json.loads(row.values()[3])
+        # description_body = json.loads(row.values()[3])
         edge_description = json.loads(row.values()[3])[0]
 
         edge_data = EdgeData(source_uid=source_uid,
@@ -214,10 +190,9 @@ class EdgeImportBenchmark(KGDBBenchmark):
         # defines the db transaction that this benchmark run should compare
         try:
             kgdb.add_edge(edge_data=data, directed=True)
-            print(f'Success adding edge {data.edge_uid} with {option_name}')
+            # print(f'Success adding edge {data.edge_uid} with {option_name}')
         except Exception as e:
             print(f"Error adding edge {data.edge_uid} with {option_name}: {e}")
-            pass
         return None
 
 
@@ -226,15 +201,12 @@ class NodeQueryBenchmark(KGDBBenchmark):
     Define Latency Benchmark for node query. Inhertits from KGDBBenchmark.
     Implements _construct_data and _db_transaction methods for node query.
     """
-    def __init__(self, benchmark_name: str,
-                 option_1: NoSQLKnowledgeGraph,
-                 option_2: NoSQLKnowledgeGraph,
+    def __init__(self,
+                 benchmark_name: str,
+                 options_dict: Dict[str, NoSQLKnowledgeGraph],
                  import_lim: int,
-                 option_1_name: str = "Firestore",
-                 option_2_name: str = "Aura"
                  ):
-        super().__init__(benchmark_name, option_1, option_2,
-                         import_lim, option_1_name, option_2_name)
+        super().__init__(benchmark_name, options_dict, import_lim)
 
     def _construct_data(self, row: Any):
         record_values = row.values()
@@ -245,10 +217,9 @@ class NodeQueryBenchmark(KGDBBenchmark):
         # defines the db transaction that this benchmark run should compare
         try:
             kgdb.get_node(node_uid=data)
-            print(f'Success fetching node data {data} with {option_name}')
+            # print(f'Success fetching node data {data} with {option_name}')
         except Exception as e:
             print(f"Error fetching node data {data} with {option_name}: {e}")
-            pass
         return None
 
         
