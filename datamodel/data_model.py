@@ -39,7 +39,7 @@ class CommunityData:
     summary: str | None = None # description of comm, None if not yet computed
     document_id: str | None = None # identifier for source knowlede base document for this entity
     community_uid: str | None = None # community identifier
-    community_embedding: Tuple[float, ...] = field(default_factory=tuple) 
+    community_embedding: Tuple[float, ...] = field(default_factory=tuple)
     rating: int | None = None
     rating_explanation: str | None = None
     findings: list[dict] | None = None
