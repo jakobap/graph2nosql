@@ -41,12 +41,14 @@ class MongoKG(NoSQLKnowledgeGraph):
 
     def add_node(self, node_uid: str, node_data: NodeData) -> None:
         """Adds an node to the knowledge graph."""
-        try:
-            # Check if a node with the same node_uid already exists
-            if self.mdb_node_coll.find_one({"node_uid": node_uid}):
-                raise ValueError(
-                    f"Error: Node with node_uid '{node_uid}' already exists.")
+        # Check if a node with the same node_uid already exists
+        if self.mdb_node_coll.find_one({"node_uid": node_uid}):
+            raise KeyError(f"Error: Node with node_uid '{node_uid}' already exists.")
 
+        if node_data.edges_to or node_data.edges_from:
+            raise ValueError(f"""Error: NodeData cannot be initiated with edges_to or edges_from. Please add edges separately.""")
+        
+        try:
             # Convert NodeData to a dictionary for MongoDB storage
             node_data_dict = node_data.__dict__
 
