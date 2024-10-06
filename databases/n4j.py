@@ -129,6 +129,10 @@ class AuraKG(NoSQLKnowledgeGraph):
             embedding=node_data.embedding
         ).summary
 
+    def _delete_from_edge_coll(self, edge_uid: str) -> None:
+        """Method to delete record from edge collection of given kg store"""
+        raise NotImplementedError("Not implemented for n4j because no collections used.")
+
     def remove_node(self, node_uid: str) -> None:
         """Removes a node from the knowledge graph."""
 
