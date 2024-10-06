@@ -49,6 +49,10 @@ class NoSQLKnowledgeGraph(ABC):
         """Updates an existing edge in the knowledge graph."""
 
     @abstractmethod
+    def _delete_from_edge_coll(self, egde_uid: str) -> None:
+        """Method to delete record from edge collection of given kg store"""
+
+    @abstractmethod
     def remove_edge(self, source_uid: str, target_uid: str) -> None:
         """Removes an edge between two entities."""
 
