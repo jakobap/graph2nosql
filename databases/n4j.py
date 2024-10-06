@@ -31,8 +31,8 @@ class AuraKG(NoSQLKnowledgeGraph):
         """Adds an node to the knowledge graph."""
 
         # with GraphDatabase.driver(self.uri, auth=self.auth) as driver:
-        self.driver.verify_connectivity()
-        print("Connection established.")
+        # self.driver.verify_connectivity()
+        # print("Connection established.")
 
         summary = self.driver.execute_query(
             "CREATE (:" + node_data.node_type + " { "
@@ -59,11 +59,11 @@ class AuraKG(NoSQLKnowledgeGraph):
             embedding=node_data.embedding
         ).summary
 
-        print("Created {nodes_created} nodes with if {node_uid} in {time} ms.".format(
-            nodes_created=summary.counters.nodes_created,
-            node_uid=node_uid,
-            time=summary.result_available_after
-        ))
+        # print("Created {nodes_created} nodes with if {node_uid} in {time} ms.".format(
+        #     nodes_created=summary.counters.nodes_created,
+        #     node_uid=node_uid,
+        #     time=summary.result_available_after
+        # ))
         return None
 
     def get_node(self, node_uid: str) -> NodeData:
