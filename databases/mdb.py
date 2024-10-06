@@ -43,11 +43,13 @@ class MongoKG(NoSQLKnowledgeGraph):
         """Adds an node to the knowledge graph."""
         # Check if a node with the same node_uid already exists
         if self.mdb_node_coll.find_one({"node_uid": node_uid}):
-            raise KeyError(f"Error: Node with node_uid '{node_uid}' already exists.")
+            raise KeyError(
+                f"Error: Node with node_uid '{node_uid}' already exists.")
 
         if node_data.edges_to or node_data.edges_from:
-            raise ValueError(f"""Error: NodeData cannot be initiated with edges_to or edges_from. Please add edges separately.""")
-        
+            raise ValueError(
+                f"""Error: NodeData cannot be initiated with edges_to or edges_from. Please add edges separately.""")
+
         try:
             # Convert NodeData to a dictionary for MongoDB storage
             node_data_dict = node_data.__dict__
@@ -279,6 +281,13 @@ class MongoKG(NoSQLKnowledgeGraph):
             raise Exception(
                 f"Error updating edge references in nodes: {e}") from e
 
+    def _delete_from_edge_coll(self, edge_uid: str) -> None:
+        """Method to delete record from edge collection of given kg store"""
+        delete_result = self.mdbe_edges_coll.delete_one({"edge_uid": edge_uid})
+        if delete_result.deleted_count == 0:
+            raise KeyError(
+                f"Error: No edge found with source_uid '{source_uid}' and target_uid '{target_uid}'")
+
     def remove_edge(self, source_uid: str, target_uid: str) -> None:
         """Removes an edge between two entities."""
 
@@ -287,17 +296,17 @@ class MongoKG(NoSQLKnowledgeGraph):
             edge_data = self.get_edge(
                 source_uid=source_uid, target_uid=target_uid)
         except Exception as e:
-            raise Exception(f"Error getting edge: {e}") from e
+            raise KeyError(f"Error getting edge: {e}") from e
 
         try:
             source_node_data = self.get_node(node_uid=source_uid)
         except Exception as e:
-            raise Exception(f"Error getting source node: {e}") from e
+            raise KeyError(f"Error getting source node: {e}") from e
 
         try:
             target_node_data = self.get_node(node_uid=target_uid)
         except Exception as e:
-            raise Exception(f"Error getting target node: {e}") from e
+            raise KeyError(f"Error getting target node: {e}") from e
 
         # remove target_uid from from source -> target
         try:
@@ -305,7 +314,7 @@ class MongoKG(NoSQLKnowledgeGraph):
             self.update_node(source_uid, source_node_data)
         except ValueError as e:
             raise ValueError(
-                f"Error: Target node not in source's edges_to: {e}")
+                f"Error: Target node not in source's edges_to: {e}") from e
 
         # remove source_uid from target <- source
         try:
@@ -313,14 +322,11 @@ class MongoKG(NoSQLKnowledgeGraph):
             self.update_node(target_uid, target_node_data)
         except ValueError as e:
             raise ValueError(
-                f"Error: Source node not in target's edges_to: {e}")
+                f"Error: Source node not in target's edges_to: {e}") from e
 
         # Remove the edge from the edges collection
         edge_uid = self._generate_edge_uid(source_uid, target_uid)
-        delete_result = self.mdbe_edges_coll.delete_one({"edge_uid": edge_uid})
-        if delete_result.deleted_count == 0:
-            raise KeyError(
-                f"Error: No edge found with source_uid '{source_uid}' and target_uid '{target_uid}'")
+        self._delete_from_edge_coll(edge_uid=edge_uid)
 
         # remove the opposite direction if edge undirected
         if not edge_data.directed:
@@ -330,7 +336,7 @@ class MongoKG(NoSQLKnowledgeGraph):
                 self.update_node(source_uid, source_node_data)
             except ValueError as e:
                 raise ValueError(
-                    f"Error: Target node not in source's edges_to: {e}")
+                    f"Error: Target node not in source's edges_to: {e}") from e
 
             # remove source_uid from target -> source
             try:
@@ -338,16 +344,12 @@ class MongoKG(NoSQLKnowledgeGraph):
                 self.update_node(target_uid, target_node_data)
             except ValueError as e:
                 raise ValueError(
-                    f"Error: Source node not in target's edges_to: {e}")
+                    f"Error: Source node not in target's edges_to: {e}") from e
 
             # Remove the edge from the edges collection
-            reverse_edge_uid = self._generate_edge_uid(target_uid, source_uid)
-            delete_result = self.mdbe_edges_coll.delete_one(
-                {"edge_uid": reverse_edge_uid})
-            if delete_result.deleted_count == 0:
-                raise KeyError(
-                    f"Error: No reverse edge found with source_uid '{target_uid}' and target_uid '{source_uid}'")
-
+            reverse_edge_uid = self._generate_edge_uid(source_uid=target_uid,
+                                                       target_uid=source_uid)
+            self._delete_from_edge_coll(edge_uid=reverse_edge_uid)
         else:
             pass
 
