@@ -9,7 +9,7 @@ from typing import Any, Dict
 from dotenv import dotenv_values
 
 from google.cloud import bigquery
-import google.auth 
+import google.auth
 
 
 from base.operations import NoSQLKnowledgeGraph
@@ -19,59 +19,52 @@ from databases.n4j import AuraKG
 from datamodel.data_model import NodeData, EdgeData
 
 
-class KGDBBenchmarkDataFetcher:
-    def __init__(self):
-        pass
-
-
-class BigQueryDataFetcher:
-    def __init__(self):
-        pass
-
-
 class KGDBBenchmark(ABC):
     """
-    Abstract base class for defining latency benchmark experiments for different Knowledge Graph Databases (KGDBs).
+    Abstract base class for defining latency benchmark experiments
+    for different Knowledge Graph Databases (KGDBs).
 
-    This class provides a framework for comparing the performance of two different KGDB implementations
-    on specific database operations. Concrete benchmark classes should inherit from this class and implement
+    This class provides a framework for comparing the performance
+    of different KGDB implementations on specific database operations.
+    Concrete benchmark classes should inherit from this class and implement
     the `_construct_data` and `_db_transaction` methods.
 
     Attributes:
         benchmark_name (str): The name of the benchmark experiment.
-        option_1 (NoSQLKnowledgeGraph): The first KGDB implementation being compared.
-        option_2 (NoSQLKnowledgeGraph): The second KGDB implementation being compared.
+        options_dict (Dict[str, NoSQLKnowledgeGraph]): Dictionary of
+        KGDB implementations being compared. 
+        
         import_lim (int): The number of records to import/process in the benchmark.
-        option_1_name (str, optional): A descriptive name for the first KGDB option. Defaults to "".
-        option_2_name (str, optional): A descriptive name for the second KGDB option. Defaults to "".
-        option_1_time (float): The total time taken by option_1 for the benchmark.
-        option_2_time (float): The total time taken by option_2 for the benchmark.
 
     Example Usage:
         ```python
         class MyBenchmark(KGDBBenchmark):
-            def __init__(self, option_1, option_2, import_lim):
-                super().__init__("My Benchmark", option_1, option_2, import_lim, "Option A", "Option B")
+            def __init__(self, options_dict, import_lim):
+                super().__init__("My Benchmark", options_dict, import_lim)
 
             def _construct_data(self, row):
                 # Implement logic to construct data for the benchmark from a row of input data.
                 pass
 
             def _db_transaction(self, kgdb, option_name, data):
-                # Implement the specific database operation to benchmark using the provided kgdb and data.
+                # Implement the specific database operation to benchmark
+                # using the provided kgdb and data.
                 pass
 
         # Create instances of your KGDB implementations (e.g., FirestoreKG, AuraKG)
         option_1 = ...
         option_2 = ...
 
+        options_dict = {"option_1_name": option_1, "option_2_name": option_2}
+
         # Create an instance of your benchmark class
-        benchmark = MyBenchmark(option_1, option_2, 1000)
+        benchmark = MyBenchmark(options_dict, 1000)
 
         # Execute the benchmark
         benchmark(records)  # 'records' would be your input data
         ```
     """
+
 
     def __init__(self,
                  benchmark_name: str,
@@ -89,7 +82,7 @@ class KGDBBenchmark(ABC):
         print(
             f'$$$$ Starting Benchmark {self.benchmark_name} with options: {self.option_names} $$$$')
 
-        for option_name in self.option_names:   
+        for option_name in self.option_names:
             start_time = time.time()
 
             for row in records:
@@ -125,13 +118,6 @@ class NodeImportBenchmark(KGDBBenchmark):
     Define Latency Benchmark for Node Import. Inhertits from KGDBBenchmark.
     Implements _construct_data and _db_transaction methods for edge import.
     """
-    def __init__(self,
-                 benchmark_name: str,
-                 options_dict: Dict[str, NoSQLKnowledgeGraph],
-                 import_lim: int,
-                 ):
-        super().__init__(benchmark_name, options_dict, import_lim)
-
     def _construct_data(self, row: Any):
         # constructs NodeData given a tuple[str, str, str] record
         record_values = row.values()
@@ -162,13 +148,6 @@ class EdgeImportBenchmark(KGDBBenchmark):
     Define Latency Benchmark for edge import. Inhertits from KGDBBenchmark.
     Implements _construct_data and _db_transaction methods for edge import.
     """
-    def __init__(self,
-                 benchmark_name: str,
-                 options_dict: Dict[str, NoSQLKnowledgeGraph],
-                 import_lim: int,
-                 ):
-        super().__init__(benchmark_name, options_dict, import_lim)
-
     def _construct_data(self, row: Any):
         # constructs NodeData given a tuple[str, str, str] record
         # record_values = row.values()
@@ -201,13 +180,6 @@ class NodeQueryBenchmark(KGDBBenchmark):
     Define Latency Benchmark for node query. Inhertits from KGDBBenchmark.
     Implements _construct_data and _db_transaction methods for node query.
     """
-    def __init__(self,
-                 benchmark_name: str,
-                 options_dict: Dict[str, NoSQLKnowledgeGraph],
-                 import_lim: int,
-                 ):
-        super().__init__(benchmark_name, options_dict, import_lim)
-
     def _construct_data(self, row: Any):
         record_values = row.values()
         node_uid = record_values[0]
@@ -222,7 +194,7 @@ class NodeQueryBenchmark(KGDBBenchmark):
             print(f"Error fetching node data {data} with {option_name}: {e}")
         return None
 
-        
+
 if __name__ == "__main__":
     os.chdir('../')
     current_directory = os.getcwd()
