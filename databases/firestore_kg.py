@@ -62,6 +62,10 @@ class FirestoreKG(NoSQLKnowledgeGraph):
         if doc_ref.get().exists:
             raise ValueError(f"Error: Node with node_uid '{node_uid}' already exists.")
 
+        # block NodeData if edge info is included
+        if node_data.edges_to or node_data.edges_from:
+            raise ValueError(f"""Error: NodeData cannot be initiated with edges_to or edges_from. Please add edges separately.""")
+        
         # Convert NodeData to a dictionary for Firestore storage
         try:
             node_data_dict = node_data.__dict__
