@@ -2,6 +2,20 @@
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Python](https://img.shields.io/badge/python-3.x-blue.svg)](https://www.python.org/)
 
+<a href="https://idx.google.com/import?url=https%3A%2F%2Fgithub.com%2Fjakobap%2Fgraph2nosql">
+  <picture>
+    <source
+      media="(prefers-color-scheme: dark)"
+      srcset="https://cdn.idx.dev/btn/open_dark_32.svg">
+    <source
+      media="(prefers-color-scheme: light)"
+      srcset="https://cdn.idx.dev/btn/open_light_32.svg">
+    <img
+      height="32"
+      alt="Open in IDX"
+      src="https://cdn.idx.dev/btn/open_purple_32.svg">
+  </picture>
+</a>
 
 A simple Python interface to store and interact with knowledge graphs in your favourite NoSQL DB.
 
